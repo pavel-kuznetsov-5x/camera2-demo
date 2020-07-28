@@ -17,7 +17,8 @@ android {
     defaultConfig {
         applicationId "com.spqrta.camera2demo"
         minSdkVersion 21
-        targetSdkVersion 29
+        //todo
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
 

@@ -2,7 +2,16 @@ package com.spqrta.camera2demo.utility.utils
 
 import android.app.Activity
 import android.database.Cursor
+import android.graphics.Bitmap
+import android.os.Environment
+import android.os.Environment.getDownloadCacheDirectory
 import android.provider.MediaStore
+import androidx.core.os.EnvironmentCompat
+import com.spqrta.camera2demo.utility.CustomApplication
+import com.spqrta.camera2demo.utility.Logger
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.format.DateTimeFormatter
+import java.io.File
 
 object GalleryUtils {
 
@@ -25,5 +34,26 @@ object GalleryUtils {
         }
         return galleryImageUrls
     }
+
+    //todo
+    fun addToGallery(bitmap: Bitmap, title: String? = null) {
+//        val filename = title ?: LocalDateTime.now().format(
+//            DateTimeFormatter.ISO_DATE_TIME
+//        ) + ".jpg"
+//        val filePath = CustomApplication.context.externalCacheDir?.absolutePath + "/" + filename
+//        Logger.d(filePath)
+//        BitmapUtils.toFile(filePath, bitmap, quality = 95)
+//        MediaStore.Images.Media.insertImage(CustomApplication.context.contentResolver, bitmap,  , "")
+    }
+
+
+    private fun getGalleryPath(): String? {
+        val folder: File = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        return folder.absolutePath
+    }
+
 
 }

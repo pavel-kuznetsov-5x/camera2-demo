@@ -23,7 +23,6 @@ class GalleryAdapter : BaseAdapter<String, GalleryAdapter.VhImage>() {
             Glide.with(containerView)
                 .load(item)
                 .into(containerView.ivImage)
-//            containerView.ivImage.setImageResource(R.mipmap.ic_launcher)
         }
     }
 
