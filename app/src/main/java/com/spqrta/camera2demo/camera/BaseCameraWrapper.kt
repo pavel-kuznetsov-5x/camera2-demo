@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
 import android.hardware.camera2.*
+import android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_UNFOCUSED
 import android.media.Image
 import android.media.ImageReader
 import android.os.Handler
@@ -18,6 +19,7 @@ import android.view.Surface
 import androidx.core.content.ContextCompat
 import com.spqrta.camera2demo.utility.CustomApplication
 import com.spqrta.camera2demo.utility.Logger
+import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.SubscriptionManager
 import com.spqrta.camera2demo.utility.utils.toStringHw
 import io.reactivex.Observable
@@ -38,10 +40,19 @@ abstract class BaseCameraWrapper<T>(
 //    private val analytics: Analytics? = null
 ) : SubscriptionManager() {
 
+    private val meter = Meter("base")
+
     protected abstract val subject: BehaviorSubject<T>
     open val resultObservable: Observable<T> by lazy {
         subject.observeOn(AndroidSchedulers.mainThread())
     }
+
+    private val focusSubject = BehaviorSubject.create<FocusState>()
+    open val focusStateObservable: Observable<FocusState> =
+        focusSubject
+            .observeOn(AndroidSchedulers.mainThread())
+            .distinctUntilChanged()
+
     private var cameraManager: CameraManager
 
     private lateinit var cameraId: String
@@ -66,7 +77,7 @@ abstract class BaseCameraWrapper<T>(
     protected val orientation: Int
         get() = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
 
-    protected open val size: Size by lazy {
+    open val size: Size by lazy {
         provideImageSize()
     }
 
@@ -78,7 +89,7 @@ abstract class BaseCameraWrapper<T>(
 
     protected lateinit var captureSession: CameraCaptureSession
     protected var sessionInitialized: Boolean = false
-    protected var sessionState: SessionState = Preview
+    var sessionState: SessionState = Preview
         set(value) {
             field = value
             Logger.v(value)
@@ -249,7 +260,6 @@ abstract class BaseCameraWrapper<T>(
                 cameraDevice!!, surfaces
             )
             sessionState = Preview
-            Logger.v("Preview")
             captureSession.setRepeatingRequest(requestBuilder.build(), captureCallback, null)
         } catch (e: CameraAccessException) {
 //            CustomApplication.analytics().logException(e)
@@ -316,16 +326,32 @@ abstract class BaseCameraWrapper<T>(
         result: CaptureResult,
         completed: Boolean
     ) {
-
         val autoFocusState = result.get(CaptureResult.CONTROL_AF_STATE)
         val autoExposureState = result.get(CaptureResult.CONTROL_AE_STATE)
-        if(sessionState != Preview) {
+
+        when (autoFocusState) {
+            CaptureResult.CONTROL_AF_STATE_INACTIVE -> {}
+            CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN -> {
+                focusSubject.onNext(Focusing)
+            }
+            null,
+            CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED,
+            CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED -> {
+                focusSubject.onNext(Focused)
+            }
+            CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED,
+            CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED-> {
+                focusSubject.onNext(Failed)
+            }
+        }
+
+        if (sessionState != Preview) {
             Logger.v("process ${sessionState::class.java.simpleName}, AE: ${autoExposureState}, AF: ${autoFocusState}, completed: $completed")
         }
 
         when (sessionState) {
             is Preview, Initial, MakingShot -> {
-                Logger.v("preview AF: ${autoFocusState}")
+//                Logger.v("preview AF: ${autoFocusState}")
             }
             is Precapture -> {
                 if (completed) {
@@ -459,14 +485,10 @@ abstract class BaseCameraWrapper<T>(
 //            calculateOrientation(rotation, orientation)
         )
 //        Logger.d("orientation ${rotation} ${orientation} ${calculateOrientation(rotation, orientation)}")
-//        requestBuilder.set(
-//            CaptureRequest.CONTROL_AF_MODE,
-//            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-//        )
-//        requestBuilder.set(
-//            CaptureRequest.CONTROL_AF_TRIGGER,
-//            CameraMetadata.CONTROL_AF_TRIGGER_START
-//        )
+        requestBuilder.set(
+            CaptureRequest.CONTROL_AF_MODE,
+            CaptureRequest.CONTROL_AF_MODE_AUTO
+        )
         return requestBuilder
     }
 
@@ -601,6 +623,7 @@ abstract class BaseCameraWrapper<T>(
         }
     }
 
+    open class StubCameraResult
     open class BitmapCameraResult(val bitmap: Bitmap)
     open class BytesCameraResult(val bytes: ByteArray)
     open class FileCameraResult(
@@ -630,6 +653,11 @@ abstract class BaseCameraWrapper<T>(
     object SavingPicture : SessionState()
     object PictureSaved : SessionState()
     object Error : SessionState()
+
+    open class FocusState
+    object Focusing : FocusState()
+    object Focused : FocusState()
+    object Failed : FocusState()
 
     abstract class SimpleCaptureCallback : CameraCaptureSession.CaptureCallback() {
 

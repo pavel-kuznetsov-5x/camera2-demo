@@ -1,22 +1,43 @@
 package com.spqrta.camera2demo.utility
 
-class Meter(val tag: String = "") {
+//todo to reusables
+class Meter(
+    private val tag: String = "",
+    private val showThread: Boolean = false,
+    private val disabled: Boolean = false
+) {
 
-    private val startTime: Long
-    private var lastLogTime: Long
+    private val startTime: Long = System.currentTimeMillis()
+    private var lastLogTime: Long = startTime
 
     init {
-        startTime = System.currentTimeMillis()
-        lastLogTime = startTime
         Logger.d("$tag start")
     }
 
-    fun log(message: String = "") {
-        Logger.d("$tag ${Thread.currentThread().name} ${System.currentTimeMillis() - lastLogTime} $message")
-        lastLogTime = System.currentTimeMillis()
+    fun log(message: String? = null) {
+        if (!disabled) {
+            var res = "$tag ${System.currentTimeMillis() - lastLogTime}"
+            if (showThread) {
+                res += " ${Thread.currentThread().name}"
+            }
+            if (message != null) {
+                res += " $message"
+            }
+            Logger.d(res)
+            lastLogTime = System.currentTimeMillis()
+        }
     }
 
-    fun logFromStart() {
-        Logger.d("$tag ${Thread.currentThread().name} ${System.currentTimeMillis() - startTime}")
+    fun logFromStart(message: String? = null) {
+        if (!disabled) {
+            var res = "$tag from start: ${System.currentTimeMillis() - startTime}"
+            if (showThread) {
+                res += " ${Thread.currentThread().name}"
+            }
+            if (message != null) {
+                res += " $message"
+            }
+            Logger.d(res)
+        }
     }
 }

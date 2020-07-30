@@ -3,7 +3,15 @@ package com.spqrta.camera2demo.utility.utils
 import java.io.*
 
 
+//todo sync with reusables
 object FileUtils {
+
+    fun ensureFolderExists(file: File): File {
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        return file
+    }
 
     fun delete(dir: File) {
         if (dir.isDirectory) {
@@ -22,6 +30,25 @@ object FileUtils {
             dir.delete()
         } else if (dir.isFile) {
             dir.delete()
+        }
+    }
+
+    fun clear(dir: File) {
+        if (dir.isDirectory) {
+            val children = dir.list()!!
+            for (child in children) {
+                val success = delete(
+                    File(
+                        dir,
+                        child
+                    )
+                )
+//            if (!success) {
+//                return false;
+//            }
+            }
+        } else {
+            throw IllegalArgumentException("not a directory")
         }
     }
 
