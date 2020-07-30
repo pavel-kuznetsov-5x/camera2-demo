@@ -1,11 +1,13 @@
 package com.spqrta.camera2demo.camera
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.graphics.Bitmap
 import android.hardware.camera2.CameraAccessException
 import android.media.ImageReader
 import android.util.Size
 import com.spqrta.camera2demo.MainActivity
+import com.spqrta.camera2demo.MyApplication
 import com.spqrta.camera2demo.utility.CustomApplication
 import com.spqrta.camera2demo.utility.Logger
 import com.spqrta.camera2demo.utility.Meter
@@ -59,7 +61,7 @@ class PhotoCameraWrapper(
         val filename = LocalDateTime.now().format(
             DateTimeFormatter.ISO_DATE_TIME
         ) + ".jpg"
-        val filePath = MainActivity.IMAGES_FOLDER.absolutePath + "/" + filename
+        val filePath = MyApplication.IMAGES_FOLDER.absolutePath + "/" + filename
 //        Logger.d(filePath)
         BitmapUtils.toFile(filePath, bitmap, quality = 95)
     }

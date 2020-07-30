@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/startFragment">
+
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.spqrta.camera2demo.screens.start.StartFragment"
+        android:label="fragment_start"
+        tools:layout="@layout/fragment_start" >
+        <action
+            android:id="@+id/action_startFragment_to_textureCameraFragment"
+            app:destination="@id/textureCameraFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/textureCameraFragment"
+        android:name="com.spqrta.camera2demo.screens.texture_camera.TextureCameraFragment"
+        android:label="TextureCameraFragment" />
+</navigation>

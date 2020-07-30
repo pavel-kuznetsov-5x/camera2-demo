@@ -14,7 +14,8 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
-open class BaseActivity : AppCompatActivity() {
+//todo sync with reusables
+abstract class BaseActivity : AppCompatActivity() {
 
     private lateinit var compositeDisposable: CompositeDisposable
 
@@ -24,7 +25,7 @@ open class BaseActivity : AppCompatActivity() {
         return listOf()
     }
 
-    protected open val layoutRes = R.layout.activity_main
+    abstract val layoutRes: Int
 
     @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
