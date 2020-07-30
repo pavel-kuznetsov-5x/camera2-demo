@@ -2,25 +2,23 @@ package com.spqrta.camera2demo.screens.texture_camera
 
 import android.Manifest
 import android.animation.ValueAnimator
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.spqrta.camera2demo.*
 import com.spqrta.camera2demo.base.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import com.spqrta.camera2demo.camera.PhotoCameraWrapper
 import com.spqrta.camera2demo.camera.TextureViewWrapper
-import com.spqrta.camera2demo.utility.CustomApplication
 import com.spqrta.camera2demo.utility.Logger
 import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.utils.*
@@ -28,9 +26,8 @@ import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.functions.BiFunction
 import io.reactivex.subjects.BehaviorSubject
-import kotlinx.android.synthetic.main.fragment_texture_camera.*
+import kotlinx.android.synthetic.main.fragment_camera.*
 import kotlinx.android.synthetic.main.layout_gallery.*
-import java.io.File
 
 class TextureCameraFragment : BaseFragment<MainActivity>() {
 
@@ -47,22 +44,23 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_texture_camera, container, false)
+        return inflater.inflate(R.layout.fragment_camera, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        cameraInitialized = false
 
         textureViewWrapper = TextureViewWrapper(textureView)
 
         rvGallery.layoutManager = GridLayoutManager(mainActivity(), 3)
         rvGallery.adapter = galleryAdapter
         galleryAdapter.onItemClickListener = {
-            //todo
-//            startActivity(Intent(this, ImageActivity::class.java).apply {
-//                putExtra(String::class.java.simpleName, it)
-//            })
+            findNavController().navigate(
+                TextureCameraFragmentDirections.actionTextureCameraFragmentToImageFragment(
+                    it
+                )
+            )
         }
 
         bCloseGallery.setOnClickListener {
@@ -106,7 +104,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
     private fun initCamera() {
         val rotation = mainActivity().windowManager.defaultDisplay.rotation
         cameraWrapper = PhotoCameraWrapper(
-            textureViewWrapper,
+            textureViewWrapper.subject,
             rotation,
             requireFrontFacing = false
         )
@@ -115,7 +113,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
         tvInfo.text = "size: ${cameraWrapper.size.toStringHw()}"
 
         cameraWrapper.focusStateObservable.subscribeManaged {
-            Logger.d(it)
+//            Logger.d(it)
             when (it) {
                 is BaseCameraWrapper.Focusing -> {
                     ivFocus.clearColorFilter()
@@ -137,7 +135,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
             throw it
         })
 
-        adjustTextureView(textureView)
+        adjustCameraView(textureView)
     }
 
     //todo refactor
@@ -153,7 +151,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
         ivResult.alpha = 1f
         ivResult.rotation = 0f
         ivResult.x = 0f
-        ivResult.y = textureView.y
+        ivResult.y = cameraView.y
         ivResult.scaleX = 1f
         ivResult.scaleY = 1f
 
@@ -196,13 +194,13 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
             .start()
     }
 
-    private fun adjustTextureView(textureView: TextureView) {
+    private fun adjustCameraView(cameraView: View) {
         val scale = PreviewAspectRatio.ratio480to640 / PreviewAspectRatio.getForSurface480to640(
             DeviceInfoUtils.getModelAndManufacturer(),
             frontFacing = false
         )
 //        Logger.v(scale)
-        textureView.scaleY = scale
+        cameraView.scaleY = scale
     }
 
     private fun triggerAskForPermissions() {
@@ -225,8 +223,8 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
         Observable.combineLatest(
             textureViewWrapper.subject,
             permissionsSubject,
-            BiFunction<TextureViewWrapper.TextureState, Boolean,
-                    Pair<TextureViewWrapper.TextureState, Boolean>> { p1, p2 ->
+            BiFunction<BaseCameraWrapper.SurfaceState, Boolean,
+                    Pair<BaseCameraWrapper.SurfaceState, Boolean>> { p1, p2 ->
                 Pair(p1, p2)
             }
         ).subscribeManaged { pair ->
@@ -234,7 +232,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
             val permissionsAllowed = pair.second
             if (permissionsAllowed) {
                 when (textureState) {
-                    is TextureViewWrapper.TextureCreated -> {
+                    is BaseCameraWrapper.SurfaceAvailable -> {
                         if (!cameraInitialized) {
                             initCamera()
 

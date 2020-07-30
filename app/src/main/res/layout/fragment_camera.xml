@@ -6,17 +6,23 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <TextureView
-        android:id="@+id/textureView"
+    <FrameLayout
+        android:id="@+id/cameraView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/lBottom"
-        app:layout_constraintDimensionRatio="480:640"
+        app:layout_constraintDimensionRatio="h,480:640"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:background="#111111" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextureView
+            android:id="@+id/textureView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:background="#111111" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -85,11 +91,11 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@id/textureView"
+        app:layout_constraintBottom_toBottomOf="@id/cameraView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/textureView" />
+        app:layout_constraintTop_toTopOf="@id/cameraView" />
 
     <TextView
         android:id="@+id/tvInfo"
@@ -97,29 +103,29 @@
         android:layout_height="wrap_content"
         android:textColor="@color/green"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textureView" />
+        app:layout_constraintTop_toTopOf="@+id/cameraView" />
 
     <ImageView
         android:id="@+id/ivFocus"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/textureView"
+        app:layout_constraintBottom_toBottomOf="@id/cameraView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/textureView"
+        app:layout_constraintTop_toTopOf="@id/cameraView"
         app:srcCompat="@drawable/ic_frame" />
 
     <include
         layout="@layout/layout_gallery"
-        tools:visibility="gone"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

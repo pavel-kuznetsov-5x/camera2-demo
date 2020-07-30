@@ -13,9 +13,33 @@
         <action
             android:id="@+id/action_startFragment_to_textureCameraFragment"
             app:destination="@id/textureCameraFragment" />
+        <action
+            android:id="@+id/action_startFragment_to_surfaceCameraFragment"
+            app:destination="@id/surfaceCameraFragment" />
     </fragment>
     <fragment
         android:id="@+id/textureCameraFragment"
         android:name="com.spqrta.camera2demo.screens.texture_camera.TextureCameraFragment"
-        android:label="TextureCameraFragment" />
+        android:label="TextureCameraFragment" >
+        <action
+            android:id="@+id/action_textureCameraFragment_to_imageFragment"
+            app:destination="@id/imageFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/surfaceCameraFragment"
+        android:name="com.spqrta.camera2demo.screens.surface_camera.SurfaceCameraFragment"
+        android:label="SurfaceCameraFragment" >
+        <action
+            android:id="@+id/action_surfaceCameraFragment_to_imageFragment"
+            app:destination="@id/imageFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/imageFragment"
+        android:name="com.spqrta.camera2demo.screens.image.ImageFragment"
+        android:label="fragment_image"
+        tools:layout="@layout/fragment_image" >
+        <argument
+            android:name="imagePath"
+            app:argType="string" />
+    </fragment>
 </navigation>

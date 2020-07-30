@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
 import android.hardware.camera2.*
-import android.hardware.camera2.CameraMetadata.CONTROL_AF_STATE_PASSIVE_UNFOCUSED
 import android.media.Image
 import android.media.ImageReader
 import android.os.Handler
@@ -26,14 +25,16 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.Subject
 import java.nio.ByteBuffer
 import java.util.*
 import kotlin.math.min
 
+//todo check if subject store past values? possible leak
 @SuppressLint("NewApi")
 abstract class BaseCameraWrapper<T>(
     protected val rotation: Int = 0,
-    protected val textureViewWrapper: TextureViewWrapper? = null,
+    protected val surfaceStateSubject: BehaviorSubject<SurfaceState>? = null,
     protected val requiredPreviewAspectRatioHw: Float? = null,
     protected val requiredImageAspectRatioHw: Float? = null,
     protected val requireFrontFacing: Boolean = false
@@ -61,13 +62,12 @@ abstract class BaseCameraWrapper<T>(
 
     protected val previewSurface: Surface?
         get() {
-            if (textureViewWrapper != null) {
-                val state = textureViewWrapper.subject.value
-                if (state is TextureViewWrapper.TextureCreated) {
-                    val surface = Surface(state.surfaceTexture)
-                    return surface
+            if (surfaceStateSubject != null) {
+                val state = surfaceStateSubject.value
+                if (state is SurfaceAvailable) {
+                    return state.surface
                 } else {
-                    throw IllegalStateException("Texture destroyed")
+                    throw IllegalStateException("Surface destroyed")
                 }
             } else return null
         }
@@ -124,6 +124,13 @@ abstract class BaseCameraWrapper<T>(
                 onNewFrame(it)
             }
         }, mBackgroundHandler)
+
+        surfaceStateSubject?.subscribeManaged {
+            if(it is SurfaceDestroyed) {
+                Logger.e("Surface Destroyed")
+                close()
+            }
+        }
     }
 
     protected open fun onNewFrame(imageReader: ImageReader) {
@@ -244,8 +251,8 @@ abstract class BaseCameraWrapper<T>(
     fun close() {
         stopBackgroundThread()
         cameraDevice?.let {
-            it.close()
             cameraDevice = null
+            it.close()
         }
         disposeAll()
     }
@@ -646,6 +653,10 @@ abstract class BaseCameraWrapper<T>(
         }
     }
 
+    open class SurfaceState
+    class SurfaceAvailable(val surface: Surface) : SurfaceState()
+    object SurfaceDestroyed : SurfaceState()
+
     object Initial : SessionState()
     object Preview : SessionState()
     object MakingShot : SessionState()
@@ -681,6 +692,7 @@ abstract class BaseCameraWrapper<T>(
     }
 
     class SessionConfigureFailedException : Exception()
+
 
     companion object {
 
@@ -718,5 +730,6 @@ abstract class BaseCameraWrapper<T>(
         }
 
     }
+
 
 }

@@ -16,4 +16,14 @@
         android:text="TextureView Camera"
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
         android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/bSurface"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="SurfaceView Camera"
+        android:textColor="@color/white" />
 </LinearLayout>

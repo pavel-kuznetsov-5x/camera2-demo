@@ -1,15 +1,12 @@
 package com.spqrta.camera2demo.camera
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.graphics.Bitmap
 import android.hardware.camera2.CameraAccessException
 import android.media.ImageReader
 import android.util.Size
-import com.spqrta.camera2demo.MainActivity
+import android.view.Surface
 import com.spqrta.camera2demo.MyApplication
-import com.spqrta.camera2demo.utility.CustomApplication
-import com.spqrta.camera2demo.utility.Logger
 import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.utils.BitmapUtils
 import io.reactivex.subjects.BehaviorSubject
@@ -18,12 +15,12 @@ import org.threeten.bp.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
 class PhotoCameraWrapper(
-    textureViewWrapper: TextureViewWrapper,
+    surfaceStateSubject: BehaviorSubject<SurfaceState>,
     rotation: Int = 0,
     requiredAspectRatio: Float? = null,
     requireFrontFacing: Boolean = false
 ) : BaseCameraWrapper<BaseCameraWrapper.BitmapCameraResult>(
-    textureViewWrapper = textureViewWrapper,
+    surfaceStateSubject = surfaceStateSubject,
     rotation = rotation,
     requiredImageAspectRatioHw = requiredAspectRatio,
     requireFrontFacing = requireFrontFacing
@@ -35,7 +32,7 @@ class PhotoCameraWrapper(
 
     override fun provideImageSize(): Size {
         //todo
-        return chooseCameraSize(requiredImageAspectRatioHw, topLimit = 999999)
+        return chooseCameraSize(requiredImageAspectRatioHw, topLimit = 512)
     }
 
     override fun handleImageAndClose(imageReader: ImageReader) {

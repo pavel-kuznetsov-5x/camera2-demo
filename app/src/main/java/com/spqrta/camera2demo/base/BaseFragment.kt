@@ -58,7 +58,7 @@ abstract class BaseFragment<T : Activity>: Fragment() {
 //        Timber.v("subs |${System.identityHashCode(BaseFragment.debug!!)}| ${BaseFragment.debug?.compositeDisposable?.size()}")
     }
 
-    fun onLeave() {
+    open fun onLeave() {
         delegates.forEach { it.onLeave() }
         disposeAll()
 //        Timber.v("--unsubscribe ${System.identityHashCode(this)}")
