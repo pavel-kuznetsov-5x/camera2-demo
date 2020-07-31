@@ -306,12 +306,17 @@ fun String?.nullIfEmpty(): String? = if (this.isNullOrEmpty()) {
     this
 }
 
-fun Size.toStringHw(): String {
-    return "${height}x$width"
-}
+//todo remove in reusables
+//fun Size.toStringHw(): String {
+////    return "${height}x$width"
+////}
 
 fun Size.toStringWh(): String {
-    return "${width}x$height"
+    return "${width}x$height ${aspectRatio()}"
+}
+
+fun Size.aspectRatio(): Float {
+    return width.toFloat()/height
 }
 
 fun <T> T?.replaceIfNull(obj: T): T {

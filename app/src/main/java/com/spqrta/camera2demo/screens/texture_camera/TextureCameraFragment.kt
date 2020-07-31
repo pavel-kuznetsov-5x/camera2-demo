@@ -8,7 +8,6 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -19,7 +18,6 @@ import com.spqrta.camera2demo.base.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import com.spqrta.camera2demo.camera.PhotoCameraWrapper
 import com.spqrta.camera2demo.camera.TextureViewWrapper
-import com.spqrta.camera2demo.utility.Logger
 import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.utils.*
 import com.tbruyelle.rxpermissions2.RxPermissions
@@ -38,7 +36,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
     private lateinit var textureViewWrapper: TextureViewWrapper
     private val permissionsSubject = BehaviorSubject.create<Boolean>()
     private var cameraInitialized = false
-    private val meter = Meter("activity", disabled = false)
+    private val meter = Meter("activity", disabled = true)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -104,13 +102,13 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
     private fun initCamera() {
         val rotation = mainActivity().windowManager.defaultDisplay.rotation
         cameraWrapper = PhotoCameraWrapper(
-            textureViewWrapper.subject,
+            { (textureViewWrapper.subject as BaseCameraWrapper.SurfaceAvailable).surface },
             rotation,
             requireFrontFacing = false
         )
         cameraInitialized = true
 
-        tvInfo.text = "size: ${cameraWrapper.size.toStringHw()}"
+        tvInfo.text = "size: ${cameraWrapper.getSizeRegardsOrientation().toStringWh()}"
 
         cameraWrapper.focusStateObservable.subscribeManaged {
 //            Logger.d(it)
@@ -223,8 +221,8 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
         Observable.combineLatest(
             textureViewWrapper.subject,
             permissionsSubject,
-            BiFunction<BaseCameraWrapper.SurfaceState, Boolean,
-                    Pair<BaseCameraWrapper.SurfaceState, Boolean>> { p1, p2 ->
+            BiFunction<BaseCameraWrapper.PreviewSurfaceState, Boolean,
+                    Pair<BaseCameraWrapper.PreviewSurfaceState, Boolean>> { p1, p2 ->
                 Pair(p1, p2)
             }
         ).subscribeManaged { pair ->
@@ -235,6 +233,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
                     is BaseCameraWrapper.SurfaceAvailable -> {
                         if (!cameraInitialized) {
                             initCamera()
+//                            textureViewWrapper.setSize(cameraWrapper.size)
 
                             bGallery.setOnClickListener {
                                 showGallery()

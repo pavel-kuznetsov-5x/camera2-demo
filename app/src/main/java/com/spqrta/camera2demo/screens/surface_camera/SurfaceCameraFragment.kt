@@ -7,11 +7,10 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
+import android.util.Size
 import android.view.*
-import androidx.fragment.app.Fragment
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
-import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -23,9 +22,7 @@ import com.spqrta.camera2demo.base.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import com.spqrta.camera2demo.camera.PhotoCameraWrapper
 import com.spqrta.camera2demo.camera.SurfaceViewWrapper
-import com.spqrta.camera2demo.camera.TextureViewWrapper
 import com.spqrta.camera2demo.screens.texture_camera.TextureCameraFragment
-import com.spqrta.camera2demo.screens.texture_camera.TextureCameraFragmentDirections
 import com.spqrta.camera2demo.utility.Logger
 import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.utils.*
@@ -46,7 +43,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
     private lateinit var surfaceViewWrapper: SurfaceViewWrapper
     private val permissionsSubject = BehaviorSubject.create<Boolean>()
     private var cameraInitialized = false
-    private val meter = Meter("activity", disabled = false)
+    private val meter = Meter("activity", disabled = true)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,7 +53,8 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         val v = inflater.inflate(R.layout.fragment_camera, container, false)
         v.cameraView.removeAllViews()
         v.cameraView.addView(SurfaceView(mainActivity()).apply {
-            layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+            layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, Gravity.CENTER)
+//            setBackgroundColor(Color.RED)
         })
         return v
     }
@@ -110,6 +108,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
     }
 
     private fun onShotClicked() {
+//        Logger.d((surfaceViewWrapper.subject.value as BaseCameraWrapper.SurfaceAvailable).surface.)
         meter.log("shot")
         progressBar.show()
         cameraWrapper.takePhoto()
@@ -118,13 +117,46 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
     private fun initCamera() {
         val rotation = mainActivity().windowManager.defaultDisplay.rotation
         cameraWrapper = PhotoCameraWrapper(
-            surfaceViewWrapper.subject,
+            {
+                Logger.e(
+                    "surface ${Size(
+                        surfaceViewWrapper.surfaceView.holder.surfaceFrame.width(),
+                        surfaceViewWrapper.surfaceView.holder.surfaceFrame.height()
+                    ).toStringWh()}"
+                )
+                surfaceViewWrapper.surface
+            },
             rotation,
+//            requiredAspectRatio = 480/640f,
             requireFrontFacing = false
         )
+
+        Logger.d(" \n"+cameraWrapper.getAvailablePreviewSizesRegardsOrientation().joinToString ("\n") { it.toStringWh() })
+
+        var previewSize = cameraWrapper.getAvailablePreviewSizesRegardsOrientation().firstOrNull()
+        if (previewSize == null) {
+            previewSize = cameraWrapper.getSizeRegardsOrientation()
+        }
+
+        //todo
+//        previewSize = Size(1536, 2048)
+
+        Logger.v("preview size ${previewSize.toStringWh()}")
+
+        val lp = surfaceViewWrapper.surfaceView.layoutParams
+        lp.height = (
+                surfaceViewWrapper.surfaceView.measuredWidth /
+                        (previewSize.width / previewSize.height.toFloat())
+                ).toInt()
+//        lp.width = 480
+//        lp.height = 640
+        surfaceViewWrapper.surfaceView.layoutParams = lp
+
+        surfaceViewWrapper.setSurfaceSize(previewSize)
+
         cameraInitialized = true
 
-        tvInfo.text = "size: ${cameraWrapper.size.toStringHw()}"
+        tvInfo.text = "size: ${cameraWrapper.getSizeRegardsOrientation().toStringWh()}"
 
         cameraWrapper.focusStateObservable.subscribeManaged {
 //            Logger.d(it)
@@ -148,11 +180,8 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         }, {
             throw it
         })
-
-//        adjustTextureView(textureView)
     }
 
-    //todo refactor
     private fun onCameraResult(result: BaseCameraWrapper.BitmapCameraResult) {
         progressBar.hide()
         meter.log("result")
@@ -208,15 +237,6 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
             .start()
     }
 
-//    private fun adjustTextureView(textureView: TextureView) {
-//        val scale = PreviewAspectRatio.ratio480to640 / PreviewAspectRatio.getForSurface480to640(
-//            DeviceInfoUtils.getModelAndManufacturer(),
-//            frontFacing = false
-//        )
-////        Logger.v(scale)
-//        textureView.scaleY = scale
-//    }
-
     private fun triggerAskForPermissions() {
         RxPermissions(this).requestEach(
             Manifest.permission.CAMERA,
@@ -237,16 +257,16 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         Observable.combineLatest(
             surfaceViewWrapper.subject,
             permissionsSubject,
-            BiFunction<BaseCameraWrapper.SurfaceState, Boolean,
-                    Pair<BaseCameraWrapper.SurfaceState, Boolean>> { p1, p2 ->
+            BiFunction<SurfaceViewWrapper.SurfaceViewState, Boolean,
+                    Pair<SurfaceViewWrapper.SurfaceViewState, Boolean>> { p1, p2 ->
                 Pair(p1, p2)
             }
-        ).subscribeManaged { pair ->
-            val textureState = pair.first
+        ).subscribeManaged { pair: Pair<SurfaceViewWrapper.SurfaceViewState, Boolean> ->
+            val surfaceViewState = pair.first
             val permissionsAllowed = pair.second
             if (permissionsAllowed) {
-                when (textureState) {
-                    is BaseCameraWrapper.SurfaceAvailable -> {
+                when (surfaceViewState) {
+                    is SurfaceViewWrapper.SurfaceAvailable -> {
                         if (!cameraInitialized) {
                             initCamera()
 
@@ -258,6 +278,11 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
                             updateGallery()
                         }
                         cameraWrapper.open()
+                    }
+                    else -> {
+                        //todo
+                        cameraWrapper.close()
+                        cameraInitialized = false
                     }
                 }
             } else {
@@ -300,5 +325,19 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         } else {
             false
         }
+    }
+
+    companion object {
+//        val DEBUG_WIDTH = 720
+//        val DEBUG_HEIGHT = 1280
+
+//        val DEBUG_WIDTH = 480
+//        val DEBUG_HEIGHT = 640
+
+//        val DEBUG_WIDTH = 1456
+//        val DEBUG_HEIGHT = 1456
+
+//        val DEBUG_WIDTH = 5472
+//        val DEBUG_HEIGHT = 7296
     }
 }

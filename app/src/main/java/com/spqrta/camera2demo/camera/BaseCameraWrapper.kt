@@ -20,12 +20,12 @@ import com.spqrta.camera2demo.utility.CustomApplication
 import com.spqrta.camera2demo.utility.Logger
 import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.SubscriptionManager
-import com.spqrta.camera2demo.utility.utils.toStringHw
+import com.spqrta.camera2demo.utility.utils.aspectRatio
+import com.spqrta.camera2demo.utility.utils.toStringWh
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.Subject
 import java.nio.ByteBuffer
 import java.util.*
 import kotlin.math.min
@@ -34,7 +34,8 @@ import kotlin.math.min
 @SuppressLint("NewApi")
 abstract class BaseCameraWrapper<T>(
     protected val rotation: Int = 0,
-    protected val surfaceStateSubject: BehaviorSubject<SurfaceState>? = null,
+    //must be invoked only when camera is open
+    protected val previewSurfaceProvider: (() -> Surface)? = null,
     protected val requiredPreviewAspectRatioHw: Float? = null,
     protected val requiredImageAspectRatioHw: Float? = null,
     protected val requireFrontFacing: Boolean = false
@@ -60,29 +61,17 @@ abstract class BaseCameraWrapper<T>(
     private lateinit var characteristics: CameraCharacteristics
     protected var cameraDevice: CameraDevice? = null
 
-    protected val previewSurface: Surface?
-        get() {
-            if (surfaceStateSubject != null) {
-                val state = surfaceStateSubject.value
-                if (state is SurfaceAvailable) {
-                    return state.surface
-                } else {
-                    throw IllegalStateException("Surface destroyed")
-                }
-            } else return null
-        }
-
-    val hasPreview = previewSurface != null
+    val hasPreview = previewSurfaceProvider != null
 
     protected val orientation: Int
         get() = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
 
-    open val size: Size by lazy {
+    protected val size: Size by lazy {
         provideImageSize()
     }
 
     protected open fun provideImageSize(): Size {
-        return chooseCameraSize(requiredImageAspectRatioHw)
+        return chooseCameraSize(aspectRatioHw = requiredPreviewAspectRatioHw)
     }
 
     var isNotOpenOrOpening: Boolean = true
@@ -124,12 +113,41 @@ abstract class BaseCameraWrapper<T>(
                 onNewFrame(it)
             }
         }, mBackgroundHandler)
+    }
 
-        surfaceStateSubject?.subscribeManaged {
-            if(it is SurfaceDestroyed) {
-                Logger.e("Surface Destroyed")
-                close()
+    //for preview surface
+    fun getRawSize(): Size {
+        return size
+    }
+
+    //for views
+    fun getSizeRegardsOrientation(): Size {
+        return convertSizeRegardsOrientation(size)
+    }
+
+    //you have to set preview surface size equal to one of this
+    fun getAvailableRawSizes(): List<Size> {
+        return characteristics.get(
+            CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+        )!!.getOutputSizes(ImageFormat.JPEG).toList()
+    }
+
+    fun getAvailableRawPreviewSizes(): List<Size> {
+        return getAvailableRawSizes()
+            .filter {
+                it.aspectRatio() == size.aspectRatio() && it.width <= 2048 && it.height <= 2048
             }
+    }
+
+    fun getAvailablePreviewSizesRegardsOrientation(): List<Size> {
+        return getAvailableRawPreviewSizes()
+            .map { convertSizeRegardsOrientation(it) }
+    }
+
+    private fun convertSizeRegardsOrientation(size: Size): Size {
+        return when (calculateOrientation(rotation, orientation)) {
+            90, 270 -> Size(size.height, size.width)
+            else -> size
         }
     }
 
@@ -244,7 +262,7 @@ abstract class BaseCameraWrapper<T>(
 
     protected open fun onCaptureSessionCreated() {
         if (hasPreview) {
-            startPreview(listOf(previewSurface!!))
+            startPreview(listOf(previewSurfaceProvider?.invoke()!!))
         }
     }
 
@@ -337,7 +355,8 @@ abstract class BaseCameraWrapper<T>(
         val autoExposureState = result.get(CaptureResult.CONTROL_AE_STATE)
 
         when (autoFocusState) {
-            CaptureResult.CONTROL_AF_STATE_INACTIVE -> {}
+            CaptureResult.CONTROL_AF_STATE_INACTIVE -> {
+            }
             CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN -> {
                 focusSubject.onNext(Focusing)
             }
@@ -347,7 +366,7 @@ abstract class BaseCameraWrapper<T>(
                 focusSubject.onNext(Focused)
             }
             CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED,
-            CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED-> {
+            CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED -> {
                 focusSubject.onNext(Failed)
             }
         }
@@ -443,7 +462,7 @@ abstract class BaseCameraWrapper<T>(
             val captureBuilder = createPhotoRequestBuilder(
                 cameraDevice!!,
                 imageReader.surface,
-                previewSurface = previewSurface
+                previewSurface = previewSurfaceProvider?.invoke()
             )
 
             captureSession.stopRepeating()
@@ -469,7 +488,7 @@ abstract class BaseCameraWrapper<T>(
     protected fun createAutoFocusSequenceRequestBuilder(cameraDevice: CameraDevice): CaptureRequest.Builder {
         val requestBuilder =
             cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-        previewSurface?.let { requestBuilder.addTarget(it) }
+        previewSurfaceProvider?.invoke()?.let { requestBuilder.addTarget(it) }
         requestBuilder.set(
             CaptureRequest.CONTROL_AF_TRIGGER,
             CameraMetadata.CONTROL_AF_TRIGGER_START
@@ -538,85 +557,83 @@ abstract class BaseCameraWrapper<T>(
 
     protected open fun getAvailableSurfaces(): List<Surface> {
         val surfaceList = mutableListOf(imageReader.surface)
-        previewSurface?.let { surfaceList.add(it) }
+        previewSurfaceProvider?.invoke()?.let { surfaceList.add(it) }
         return surfaceList
     }
 
     fun chooseCameraSize(
-        aspectRationHw: Float? = null,
-        bottomLimit: Int = 0,
-        topLimit: Int? = null,
+        exact: Size? = null,
         exactHeight: Int? = null,
+        aspectRatioHw: Float? = null,
+        bottomLimit: Int = 0,
+        topLimit: Int = Int.MAX_VALUE,
         smallest: Boolean = false
     ): Size {
-        val map = characteristics.get(
-            CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
-        )!!
+        val sizes = getAvailableRawSizes()
 
-        Logger.v(map.getOutputSizes(ImageFormat.JPEG).joinToString(" ") {
-            it.toStringHw()
+//        Logger.v(" \n" + sizes.joinToString("\n") { it.toStringWh() })
+        Logger.v(" \n" + sizes.sortedBy { it.width }.joinToString("\n") {
+            convertSizeRegardsOrientation(it).toStringWh()
         })
 
-        val sizes = map.getOutputSizes(ImageFormat.JPEG).toList()
 
         var selectedSizes = sizes
+        var selectedSize: Size? = null
 
-        //choose exact size
-        exactHeight?.let { h ->
-            selectedSizes = sizes.filter { it.height == h }
-            if (selectedSizes.isNotEmpty()) {
-                return selectedSizes[0]
+        if (exact != null) {
+            val requiredExact = convertSizeRegardsOrientation(exact)
+            if (sizes.any {
+                    it.width == requiredExact.width && it.height == requiredExact.height
+                }) {
+                selectedSize = requiredExact
             }
         }
 
+        if (selectedSize == null) {
 
-        val filteredSizes = sizes
-            .filter {
-                if (topLimit != null) {
-                    it.width <= topLimit && it.height <= topLimit
-                } else {
-                    true
+            exactHeight?.let { h ->
+                selectedSizes = sizes.filter { it.height == h }
+                if (selectedSizes.isNotEmpty()) {
+                    selectedSize = selectedSizes[0]
                 }
             }
-            .filter {
-                it.width >= bottomLimit && it.height >= bottomLimit
-            }
+        }
 
-        //choose by aspect ratio
-        selectedSizes = filteredSizes
-            .filter {
-                if (aspectRationHw != null) {
-                    it.height / it.width.toFloat() == aspectRationHw
-                } else true
-            }
-            .toList()
+        if (selectedSize == null) {
 
-        if (selectedSizes.isEmpty()) {
-            Logger.e("required aspect ratio not found")
-//                CustomApplication.analytics()
-//                    .logException(Exception("required aspect ratio not found"))
+            val filteredSizes = sizes
+                .filter { it.width <= topLimit && it.height <= topLimit }
+                .filter { it.width >= bottomLimit && it.height >= bottomLimit }
+
+            //choose by aspect ratio
             selectedSizes = filteredSizes
-        }
+                .filter {
+                    if (aspectRatioHw != null) {
+                        it.height / it.width.toFloat() == aspectRatioHw
+                    } else true
+                }
+                .toList()
 
-        if (selectedSizes.isEmpty()) {
-            Logger.e("size range not found")
+            if (filteredSizes.isEmpty()) {
+                Logger.e("required size not found")
 //                CustomApplication.analytics().logException(Exception("size range not found"))
-            selectedSizes = sizes
+            }
+
+            selectedSize = if (smallest) {
+                Collections.min(
+                    selectedSizes,
+                    SizeComparatorByArea
+                )
+            } else {
+                Collections.max(
+                    selectedSizes,
+                    SizeComparatorByArea
+                )
+            }
         }
 
-        val selectedSize = if (smallest) {
-            Collections.min(
-                selectedSizes,
-                SizeComparatorByArea
-            )
-        } else {
-            Collections.max(
-                selectedSizes,
-                SizeComparatorByArea
-            )
-        }
-        Logger.v("size ${selectedSize.height} ${selectedSize.width} ${selectedSize.height / selectedSize.width.toFloat()}")
-        return selectedSize
+        Logger.v("selected size ${convertSizeRegardsOrientation(selectedSize!!).toStringWh()}")
+        return selectedSize!!
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -653,9 +670,10 @@ abstract class BaseCameraWrapper<T>(
         }
     }
 
-    open class SurfaceState
-    class SurfaceAvailable(val surface: Surface) : SurfaceState()
-    object SurfaceDestroyed : SurfaceState()
+    //todo delete
+    open class PreviewSurfaceState
+    class SurfaceAvailable(val surface: Surface) : PreviewSurfaceState()
+    object SurfaceDestroyed : PreviewSurfaceState()
 
     object Initial : SessionState()
     object Preview : SessionState()

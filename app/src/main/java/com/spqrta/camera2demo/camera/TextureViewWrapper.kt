@@ -3,13 +3,12 @@ package com.spqrta.camera2demo.camera
 import android.graphics.SurfaceTexture
 import android.view.Surface
 import android.view.TextureView
-import com.spqrta.camera2demo.MainActivity
 import io.reactivex.subjects.BehaviorSubject
 
 
 class TextureViewWrapper(val textureView: TextureView) {
 
-    val subject: BehaviorSubject<BaseCameraWrapper.SurfaceState> = BehaviorSubject.create<BaseCameraWrapper.SurfaceState>()
+    val subject: BehaviorSubject<BaseCameraWrapper.PreviewSurfaceState> = BehaviorSubject.create<BaseCameraWrapper.PreviewSurfaceState>()
 
     init {
         textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
@@ -18,7 +17,8 @@ class TextureViewWrapper(val textureView: TextureView) {
                 width: Int,
                 height: Int
             ) {
-                surfaceTexture.setDefaultBufferSize(textureView.width, textureView.height)
+//                surfaceTexture.setDefaultBufferSize(textureView.width, textureView.height)
+                surfaceTexture.setDefaultBufferSize(240, 320)
                 subject.onNext(BaseCameraWrapper.SurfaceAvailable(Surface(surfaceTexture)))
             }
 

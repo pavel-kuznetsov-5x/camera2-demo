@@ -2,6 +2,7 @@ package com.spqrta.camera2demo.utility
 
 import android.util.Log
 
+//todo multi
 object Logger {
 
     private val logEnabled = CustomApplication.appConfig.debugMode

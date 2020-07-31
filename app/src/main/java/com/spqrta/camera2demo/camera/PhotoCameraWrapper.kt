@@ -7,6 +7,8 @@ import android.media.ImageReader
 import android.util.Size
 import android.view.Surface
 import com.spqrta.camera2demo.MyApplication
+import com.spqrta.camera2demo.screens.surface_camera.SurfaceCameraFragment
+import com.spqrta.camera2demo.utility.Logger
 import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.utils.BitmapUtils
 import io.reactivex.subjects.BehaviorSubject
@@ -15,12 +17,12 @@ import org.threeten.bp.format.DateTimeFormatter
 
 @SuppressLint("NewApi")
 class PhotoCameraWrapper(
-    surfaceStateSubject: BehaviorSubject<SurfaceState>,
+    previewSurfaceProvider: ()-> Surface,
     rotation: Int = 0,
     requiredAspectRatio: Float? = null,
     requireFrontFacing: Boolean = false
 ) : BaseCameraWrapper<BaseCameraWrapper.BitmapCameraResult>(
-    surfaceStateSubject = surfaceStateSubject,
+    previewSurfaceProvider = previewSurfaceProvider,
     rotation = rotation,
     requiredImageAspectRatioHw = requiredAspectRatio,
     requireFrontFacing = requireFrontFacing
@@ -32,7 +34,14 @@ class PhotoCameraWrapper(
 
     override fun provideImageSize(): Size {
         //todo
-        return chooseCameraSize(requiredImageAspectRatioHw, topLimit = 512)
+//        val exactSize = Size(1536, 2048)
+//        return chooseCameraSize(exact = exactSize)
+
+//        val exactSize = Size(1536, 2048)
+//        return chooseCameraSize(exact = exactSize)
+//        return chooseCameraSize(topLimit = 4000)
+//        return chooseCameraSize(aspectRatioHw = 720f/1280)
+        return chooseCameraSize()
     }
 
     override fun handleImageAndClose(imageReader: ImageReader) {
@@ -50,7 +59,7 @@ class PhotoCameraWrapper(
         subject.onNext(BitmapCameraResult(thumbnail))
         saveToGallery(bitmap)
         meter.log("save")
-        startPreview(listOf(previewSurface!!))
+        startPreview(listOf(previewSurfaceProvider?.invoke()!!))
         meter.log("finish")
     }
 
