@@ -45,6 +45,8 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
     private var cameraInitialized = false
     private val meter = Meter("activity", disabled = true)
 
+    private var frontFacing = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -52,6 +54,8 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         // Inflate the layout for this fragment
         val v = inflater.inflate(R.layout.fragment_camera, container, false)
         v.cameraView.removeAllViews()
+
+        //todo
         v.cameraView.addView(SurfaceView(mainActivity()).apply {
             layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT, Gravity.CENTER)
 //            setBackgroundColor(Color.RED)
@@ -89,6 +93,21 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
             onShotClicked()
         }
 
+        bSwitchCamera.setOnClickListener {
+            cameraView.hide()
+            cameraView.cameraDistance = Float.MAX_VALUE
+            frontFacing = !frontFacing
+            cameraWrapper.close()
+            initCamera()
+            cameraWrapper.open()
+            cameraView.show()
+            cameraView.animate().rotationY(if(frontFacing) {
+                180f
+            } else {
+                0f
+            }).setDuration(1000L).start()
+        }
+
         initObservables()
         triggerAskForPermissions()
     }
@@ -118,20 +137,20 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         val rotation = mainActivity().windowManager.defaultDisplay.rotation
         cameraWrapper = PhotoCameraWrapper(
             {
-                Logger.e(
-                    "surface ${Size(
-                        surfaceViewWrapper.surfaceView.holder.surfaceFrame.width(),
-                        surfaceViewWrapper.surfaceView.holder.surfaceFrame.height()
-                    ).toStringWh()}"
-                )
+//                Logger.e(
+//                    "surface ${Size(
+//                        surfaceViewWrapper.surfaceView.holder.surfaceFrame.width(),
+//                        surfaceViewWrapper.surfaceView.holder.surfaceFrame.height()
+//                    ).toStringWh()}"
+//                )
                 surfaceViewWrapper.surface
             },
             rotation,
 //            requiredAspectRatio = 480/640f,
-            requireFrontFacing = false
+            requireFrontFacing = frontFacing
         )
 
-        Logger.d(" \n"+cameraWrapper.getAvailablePreviewSizesRegardsOrientation().joinToString ("\n") { it.toStringWh() })
+//        Logger.d(" \n"+cameraWrapper.getAvailablePreviewSizesRegardsOrientation().joinToString ("\n") { it.toStringWh() })
 
         var previewSize = cameraWrapper.getAvailablePreviewSizesRegardsOrientation().firstOrNull()
         if (previewSize == null) {
@@ -166,8 +185,9 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
                     ivFocus.show()
                 }
                 is BaseCameraWrapper.Failed -> {
-                    ivFocus.colorFilter = PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN)
-                    ivFocus.show()
+//                    ivFocus.colorFilter = PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN)
+//                    ivFocus.show()
+                    ivFocus.hide()
                 }
                 else -> {
                     ivFocus.hide()
@@ -207,7 +227,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         val targetScaleY = bGallery.measuredHeight.toFloat() / ivResult.measuredHeight * 0.6f
         val startY = ivResult.y
         val anim = ValueAnimator.ofFloat(1f, 0f)
-        anim.interpolator = TextureCameraFragment.INTERPOLATOR
+        anim.interpolator = INTERPOLATOR
         anim.addUpdateListener { valueAnimator ->
             val animatorValue = valueAnimator.animatedValue as Float
             ivResult.scaleX = (animatorValue * (1 - targetScaleX)) + targetScaleX
@@ -216,7 +236,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
             ivResult.y = startY - ((1 - animatorValue) * (startY - targetY))
             ivResult.rotation = (1 - animatorValue) * -360
         }
-        anim.duration = TextureCameraFragment.ANIM_DURATION
+        anim.duration = ANIM_DURATION
 //        anim.addListener(object : AbstractSimpleAnimatorListener() {
 //            override fun onAnimationEnd(animation: Animator?) {
 //
@@ -227,8 +247,8 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         ivResult.animate()
             .alpha(0f)
 //            .setInterpolator(INTERPOLATOR)
-            .setStartDelay(TextureCameraFragment.FADE_DELAY)
-            .setDuration(TextureCameraFragment.FADE_DURATION)
+            .setStartDelay(FADE_DELAY)
+            .setDuration(FADE_DURATION)
             .withEndAction {
                 ivResult.makeInvisible()
                 ivResult.setImageBitmap(null)
@@ -328,6 +348,11 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
     }
 
     companion object {
+        const val ANIM_DURATION = 700L
+        const val FADE_DURATION = 350L
+        const val FADE_DELAY = 600L
+        val INTERPOLATOR = android.view.animation.AccelerateDecelerateInterpolator()
+
 //        val DEBUG_WIDTH = 720
 //        val DEBUG_HEIGHT = 1280
 
@@ -340,4 +365,5 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
 //        val DEBUG_WIDTH = 5472
 //        val DEBUG_HEIGHT = 7296
     }
+
 }

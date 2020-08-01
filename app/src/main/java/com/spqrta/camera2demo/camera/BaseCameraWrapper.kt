@@ -28,6 +28,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.subjects.BehaviorSubject
 import java.nio.ByteBuffer
 import java.util.*
+import kotlin.math.atan
 import kotlin.math.min
 
 //todo check if subject store past values? possible leak
@@ -38,7 +39,8 @@ abstract class BaseCameraWrapper<T>(
     protected val previewSurfaceProvider: (() -> Surface)? = null,
     protected val requiredPreviewAspectRatioHw: Float? = null,
     protected val requiredImageAspectRatioHw: Float? = null,
-    protected val requireFrontFacing: Boolean = false
+    protected val requireFrontFacing: Boolean = false,
+    protected val requiredCameraId: String? = null
 //    private val analytics: Analytics? = null
 ) : SubscriptionManager() {
 
@@ -58,13 +60,10 @@ abstract class BaseCameraWrapper<T>(
     private var cameraManager: CameraManager
 
     private lateinit var cameraId: String
-    private lateinit var characteristics: CameraCharacteristics
+    protected lateinit var characteristics: CameraCharacteristicsWrapper
     protected var cameraDevice: CameraDevice? = null
 
     val hasPreview = previewSurfaceProvider != null
-
-    protected val orientation: Int
-        get() = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
 
     protected val size: Size by lazy {
         provideImageSize()
@@ -99,7 +98,7 @@ abstract class BaseCameraWrapper<T>(
         cameraManager =
             CustomApplication.context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-        chooseCamera()
+        chooseCamera(requiredCameraId)
 
         imageReader = ImageReader.newInstance(
             size.width,
@@ -127,9 +126,7 @@ abstract class BaseCameraWrapper<T>(
 
     //you have to set preview surface size equal to one of this
     fun getAvailableRawSizes(): List<Size> {
-        return characteristics.get(
-            CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
-        )!!.getOutputSizes(ImageFormat.JPEG).toList()
+        return characteristics.availableSizes
     }
 
     fun getAvailableRawPreviewSizes(): List<Size> {
@@ -145,7 +142,7 @@ abstract class BaseCameraWrapper<T>(
     }
 
     private fun convertSizeRegardsOrientation(size: Size): Size {
-        return when (calculateOrientation(rotation, orientation)) {
+        return when (calculateOrientation(rotation, characteristics.sensorOrientation)) {
             90, 270 -> Size(size.height, size.width)
             else -> size
         }
@@ -169,20 +166,59 @@ abstract class BaseCameraWrapper<T>(
 
     protected open fun handleImageAndClose(imageReader: ImageReader) {}
 
-    private fun chooseCamera() {
-        try {
-            for (_cameraId in cameraManager.cameraIdList) {
-                val _characteristics = cameraManager.getCameraCharacteristics(_cameraId)
-                characteristics = _characteristics
+    fun getAvailableCameras(): List<CameraCharacteristicsWrapper> {
+        return cameraManager.cameraIdList.map {
+            CameraCharacteristicsWrapper(cameraManager.getCameraCharacteristics(it))
+        }
+    }
 
-                val facing = _characteristics.get(CameraCharacteristics.LENS_FACING) ?: continue
-                val frontFacing = facing == CameraCharacteristics.LENS_FACING_FRONT
-                if (requireFrontFacing != frontFacing) continue
-
-                cameraId = _cameraId
-                return
+    //todo move down
+    class CameraCharacteristicsWrapper(private val characteristics: CameraCharacteristics) {
+        val isFrontFacing: Boolean
+            get() {
+                return characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
             }
-            subject.onError(NoCameraError())
+
+        val fov: Float
+            get() {
+                val width = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)?.width!!
+                val focalLength =
+                    characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.first()!!
+                val fov = 2 * atan(width / (focalLength * 2))
+                return fov
+            }
+
+        val availableSizes: List<Size>
+            get() {
+                return characteristics.get(
+                    CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+                )!!.getOutputSizes(ImageFormat.JPEG).toList()
+            }
+
+        val sensorOrientation: Int
+            get() {
+                return characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
+            }
+    }
+
+    private fun chooseCamera(requiredCameraId: String?) {
+        try {
+            if(requiredCameraId != null) {
+                cameraId = requiredCameraId
+                characteristics = CameraCharacteristicsWrapper(cameraManager.getCameraCharacteristics(cameraId))
+            } else {
+                for (id in cameraManager.cameraIdList) {
+                    val chs = CameraCharacteristicsWrapper(cameraManager.getCameraCharacteristics(id))
+                    if (requireFrontFacing != chs.isFrontFacing) {
+                        continue
+                    } else {
+                        cameraId = id
+                        characteristics = chs
+                        return
+                    }
+                }
+                subject.onError(NoCameraError())
+            }
         } catch (e: CameraAccessException) {
             subject.onError(e)
         }

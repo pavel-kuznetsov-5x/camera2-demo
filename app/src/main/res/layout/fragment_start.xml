@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".screens.start.StartFragment" >
 
-    <Button
+    <!--<Button
         android:id="@+id/bTexture"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,7 +15,7 @@
         android:padding="16dp"
         android:text="TextureView Camera"
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
-        android:textColor="@color/white" />
+        android:textColor="@color/white" />-->
 
     <Button
         android:id="@+id/bSurface"

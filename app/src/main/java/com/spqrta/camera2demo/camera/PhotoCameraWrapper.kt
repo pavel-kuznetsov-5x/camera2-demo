@@ -51,7 +51,7 @@ class PhotoCameraWrapper(
             cropResult(
                 imageToBitmapAndClose(imageReader.acquireLatestImage())
             ),
-            calculateOrientation(rotation, orientation)
+            calculateOrientation(rotation, characteristics.sensorOrientation)
         )
         meter.log("prepare")
         val thumbnail = BitmapUtils.scale(bitmap, width = 128)

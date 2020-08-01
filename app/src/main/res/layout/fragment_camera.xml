@@ -83,6 +83,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.5" />
+
+        <ImageView
+            android:id="@+id/bSwitchCamera"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:padding="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guideline"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_switch_camera" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView

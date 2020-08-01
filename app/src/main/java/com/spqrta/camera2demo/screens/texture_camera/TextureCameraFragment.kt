@@ -29,7 +29,7 @@ import kotlinx.android.synthetic.main.layout_gallery.*
 
 class TextureCameraFragment : BaseFragment<MainActivity>() {
 
-    private val galleryAdapter = GalleryAdapter()
+    /*private val galleryAdapter = GalleryAdapter()
 
     private lateinit var cameraWrapper: PhotoCameraWrapper
 
@@ -292,5 +292,5 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
         const val FADE_DURATION = 350L
         const val FADE_DELAY = 600L
         val INTERPOLATOR = android.view.animation.AccelerateDecelerateInterpolator()
-    }
+    }*/
 }

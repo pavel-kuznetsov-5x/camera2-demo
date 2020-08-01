@@ -26,9 +26,9 @@ class StartFragment : BaseFragment<MainActivity>() {
 
         findNavController().navigate(StartFragmentDirections.actionStartFragmentToSurfaceCameraFragment())
 
-        bTexture.setOnClickListener {
-            findNavController().navigate(StartFragmentDirections.actionStartFragmentToTextureCameraFragment())
-        }
+//        bTexture.setOnClickListener {
+//            findNavController().navigate(StartFragmentDirections.actionStartFragmentToTextureCameraFragment())
+//        }
 
         bSurface.setOnClickListener {
             findNavController().navigate(StartFragmentDirections.actionStartFragmentToSurfaceCameraFragment())
