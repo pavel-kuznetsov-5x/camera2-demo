@@ -94,18 +94,19 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         }
 
         bSwitchCamera.setOnClickListener {
-            cameraView.hide()
-            cameraView.cameraDistance = Float.MAX_VALUE
-            frontFacing = !frontFacing
-            cameraWrapper.close()
-            initCamera()
-            cameraWrapper.open()
-            cameraView.show()
             cameraView.animate().rotationY(if(frontFacing) {
                 180f
             } else {
                 0f
             }).setDuration(1000L).start()
+//            cameraView.hide()
+            cameraView.cameraDistance = Float.MAX_VALUE
+            frontFacing = !frontFacing
+            cameraWrapper.close()
+            initCamera()
+            cameraWrapper.open()
+//            cameraView.show()
+
         }
 
         initObservables()
@@ -175,7 +176,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
 
         cameraInitialized = true
 
-        tvInfo.text = "size: ${cameraWrapper.getSizeRegardsOrientation().toStringWh()}"
+//        tvInfo.text = "size: ${cameraWrapper.getSizeRegardsOrientation().toStringWh()}"
 
         cameraWrapper.focusStateObservable.subscribeManaged {
 //            Logger.d(it)

@@ -28,8 +28,9 @@
                 android:resource="@xml/paths" />
         </provider>
 
-        <activity android:name=".ImageActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:configChanges="orientation"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
