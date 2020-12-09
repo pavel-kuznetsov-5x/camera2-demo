@@ -9,7 +9,7 @@ class MainActivity : NavActivity() {
 
     override val layoutRes: Int = R.layout.activity_nav
 
-            override fun onConfigurationChanged(newConfig: Configuration) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
         // Checks the orientation of the screen

@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_startFragment_to_surfaceCameraFragment"
             app:destination="@id/surfaceCameraFragment" />
+        <action
+            android:id="@+id/action_startFragment_to_qrFragment"
+            app:destination="@id/qrFragment" />
     </fragment>
     <fragment
         android:id="@+id/textureCameraFragment"
@@ -42,4 +45,8 @@
             android:name="imagePath"
             app:argType="string" />
     </fragment>
+    <fragment
+        android:id="@+id/qrFragment"
+        android:name="com.spqrta.camera2demo.screens.qr.QrFragment"
+        android:label="QrFragment" />
 </navigation>

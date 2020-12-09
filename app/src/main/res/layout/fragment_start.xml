@@ -26,4 +26,14 @@
         android:padding="16dp"
         android:text="SurfaceView Camera"
         android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/bQr"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="Scan QR"
+        android:textColor="@color/white" />
 </LinearLayout>
