@@ -1,8 +1,9 @@
-package com.spqrta.camera2demo.camera
+package com.spqrta.camera2demo.camera.view_wrappers
 
 import android.graphics.SurfaceTexture
 import android.view.Surface
 import android.view.TextureView
+import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import io.reactivex.subjects.BehaviorSubject
 
 

@@ -1,39 +1,30 @@
 package com.spqrta.camera2demo.screens.qr
 
 import android.Manifest
-import android.animation.ValueAnimator
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.*
-import androidx.fragment.app.Fragment
 import android.widget.FrameLayout
-import androidx.core.view.isVisible
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
-import com.spqrta.camera2demo.GalleryAdapter
 import com.spqrta.camera2demo.MainActivity
-import com.spqrta.camera2demo.MyApplication
 import com.spqrta.camera2demo.R
-import com.spqrta.camera2demo.base.delegates.StateDelegate
 import com.spqrta.camera2demo.base.display.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import com.spqrta.camera2demo.camera.PhotoCameraWrapper
-import com.spqrta.camera2demo.camera.SurfaceViewWrapper
-import com.spqrta.camera2demo.screens.surface_camera.SurfaceCameraFragmentDirections
-import com.spqrta.camera2demo.utility.Logg
-import com.spqrta.camera2demo.utility.Meter
+import com.spqrta.camera2demo.camera.QrCameraWrapper
+import com.spqrta.camera2demo.camera.view_wrappers.SurfaceViewWrapper
 import com.spqrta.camera2demo.utility.pure.*
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.functions.BiFunction
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.fragment_camera.*
+import kotlinx.android.synthetic.main.fragment_camera.cameraView
+import kotlinx.android.synthetic.main.fragment_camera.ivFocus
 import kotlinx.android.synthetic.main.fragment_camera.view.*
-import kotlinx.android.synthetic.main.layout_gallery.*
+import kotlinx.android.synthetic.main.fragment_qr.*
 
 class QrFragment : BaseFragment<MainActivity>() {
 
-    private lateinit var cameraWrapper: PhotoCameraWrapper
+    private lateinit var cameraWrapper: QrCameraWrapper
 
     private lateinit var surfaceViewWrapper: SurfaceViewWrapper
     private val permissionsSubject = BehaviorSubject.create<Boolean>()
@@ -81,7 +72,7 @@ class QrFragment : BaseFragment<MainActivity>() {
 
     private fun initCamera() {
         val rotation = mainActivity().windowManager.defaultDisplay.rotation
-        cameraWrapper = PhotoCameraWrapper(
+        cameraWrapper = QrCameraWrapper(
             {
                 surfaceViewWrapper.surface
             },
@@ -128,8 +119,12 @@ class QrFragment : BaseFragment<MainActivity>() {
         })
     }
 
-    private fun onCameraResult(result: BaseCameraWrapper.BitmapCameraResult) {
-
+    //    private fun onCameraResult(result: BaseCameraWrapper.BitmapCameraResult) {
+    private fun onCameraResult(result: QrCameraWrapper.StringCameraResult) {
+//    ivDebResult.setImageBitmap(result.bitmap)
+        result.result?.let {
+            tvQrResult.text = it
+        }
     }
 
     private fun triggerAskForPermissions() {

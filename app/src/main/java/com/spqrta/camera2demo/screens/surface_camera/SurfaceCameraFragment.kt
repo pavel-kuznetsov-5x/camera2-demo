@@ -3,11 +3,7 @@ package com.spqrta.camera2demo.screens.surface_camera
 import android.Manifest
 import android.animation.ValueAnimator
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
-import android.util.Size
 import android.view.*
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
@@ -22,12 +18,10 @@ import com.spqrta.camera2demo.base.delegates.StateDelegate
 import com.spqrta.camera2demo.base.display.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import com.spqrta.camera2demo.camera.PhotoCameraWrapper
-import com.spqrta.camera2demo.camera.SurfaceViewWrapper
-import com.spqrta.camera2demo.screens.texture_camera.TextureCameraFragment
+import com.spqrta.camera2demo.camera.view_wrappers.SurfaceViewWrapper
 import com.spqrta.camera2demo.utility.Logg
 import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.pure.*
-import com.spqrta.camera2demo.utility.utils.*
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.functions.BiFunction

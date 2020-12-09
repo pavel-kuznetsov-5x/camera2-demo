@@ -24,8 +24,7 @@ class StartFragment : BaseFragment<MainActivity>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        todo
-        findNavController().navigate(StartFragmentDirections.actionStartFragmentToQrFragment())
+//        findNavController().navigate(StartFragmentDirections.actionStartFragmentToQrFragment())
 
 //        bTexture.setOnClickListener {
 //            findNavController().navigate(StartFragmentDirections.actionStartFragmentToTextureCameraFragment())
@@ -33,6 +32,10 @@ class StartFragment : BaseFragment<MainActivity>() {
 
         bSurface.setOnClickListener {
             findNavController().navigate(StartFragmentDirections.actionStartFragmentToSurfaceCameraFragment())
+        }
+
+        bQr.setOnClickListener {
+            findNavController().navigate(StartFragmentDirections.actionStartFragmentToQrFragment())
         }
     }
 }

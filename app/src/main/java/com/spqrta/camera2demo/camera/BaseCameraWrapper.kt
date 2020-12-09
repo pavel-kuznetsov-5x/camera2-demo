@@ -100,12 +100,7 @@ abstract class BaseCameraWrapper<T>(
 
         chooseCamera(requiredCameraId)
 
-        imageReader = ImageReader.newInstance(
-            size.width,
-            size.height,
-            ImageFormat.JPEG,
-            2
-        )
+        imageReader = createImageReader()
 
         imageReader.setOnImageAvailableListener({
             mBackgroundHandler?.post {
@@ -114,6 +109,14 @@ abstract class BaseCameraWrapper<T>(
         }, mBackgroundHandler)
     }
 
+    open fun createImageReader(): ImageReader {
+        return ImageReader.newInstance(
+            size.width,
+            size.height,
+            ImageFormat.JPEG,
+            2
+        )
+    }
     //for preview surface
     fun getRawSize(): Size {
         return size
@@ -150,7 +153,7 @@ abstract class BaseCameraWrapper<T>(
 
     protected open fun onNewFrame(imageReader: ImageReader) {
         try {
-            Logg.v("onNewFrame")
+//            Logg.v("onNewFrame")
             handleImageAndClose(imageReader)
         } catch (e: IllegalStateException) {
             if (e.message?.contains("maxImages") == true) {
@@ -172,43 +175,17 @@ abstract class BaseCameraWrapper<T>(
         }
     }
 
-    //todo move down
-    class CameraCharacteristicsWrapper(private val characteristics: CameraCharacteristics) {
-        val isFrontFacing: Boolean
-            get() {
-                return characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
-            }
-
-        val fov: Float
-            get() {
-                val width = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)?.width!!
-                val focalLength =
-                    characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.first()!!
-                val fov = 2 * atan(width / (focalLength * 2))
-                return fov
-            }
-
-        val availableSizes: List<Size>
-            get() {
-                return characteristics.get(
-                    CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
-                )!!.getOutputSizes(ImageFormat.JPEG).toList()
-            }
-
-        val sensorOrientation: Int
-            get() {
-                return characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
-            }
-    }
 
     private fun chooseCamera(requiredCameraId: String?) {
         try {
-            if(requiredCameraId != null) {
+            if (requiredCameraId != null) {
                 cameraId = requiredCameraId
-                characteristics = CameraCharacteristicsWrapper(cameraManager.getCameraCharacteristics(cameraId))
+                characteristics =
+                    CameraCharacteristicsWrapper(cameraManager.getCameraCharacteristics(cameraId))
             } else {
                 for (id in cameraManager.cameraIdList) {
-                    val chs = CameraCharacteristicsWrapper(cameraManager.getCameraCharacteristics(id))
+                    val chs =
+                        CameraCharacteristicsWrapper(cameraManager.getCameraCharacteristics(id))
                     if (requireFrontFacing != chs.isFrontFacing) {
                         continue
                     } else {
@@ -520,7 +497,6 @@ abstract class BaseCameraWrapper<T>(
 
     }
 
-    //todo changes to reusables
     protected fun createAutoFocusSequenceRequestBuilder(cameraDevice: CameraDevice): CaptureRequest.Builder {
         val requestBuilder =
             cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
@@ -747,6 +723,35 @@ abstract class BaseCameraWrapper<T>(
 
     class SessionConfigureFailedException : Exception()
 
+    class CameraCharacteristicsWrapper(private val characteristics: CameraCharacteristics) {
+        val isFrontFacing: Boolean
+            get() {
+                return characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
+            }
+
+        val fov: Float
+            get() {
+                val width =
+                    characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)?.width!!
+                val focalLength =
+                    characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
+                        ?.first()!!
+                val fov = 2 * atan(width / (focalLength * 2))
+                return fov
+            }
+
+        val availableSizes: List<Size>
+            get() {
+                return characteristics.get(
+                    CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP
+                )!!.getOutputSizes(ImageFormat.JPEG).toList()
+            }
+
+        val sensorOrientation: Int
+            get() {
+                return characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
+            }
+    }
 
     companion object {
 
