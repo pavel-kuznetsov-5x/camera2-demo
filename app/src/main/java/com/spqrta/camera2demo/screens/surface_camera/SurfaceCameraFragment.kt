@@ -18,6 +18,7 @@ import com.spqrta.camera2demo.GalleryAdapter
 import com.spqrta.camera2demo.MainActivity
 import com.spqrta.camera2demo.MyApplication
 import com.spqrta.camera2demo.R
+import com.spqrta.camera2demo.base.delegates.StateDelegate
 import com.spqrta.camera2demo.base.display.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import com.spqrta.camera2demo.camera.PhotoCameraWrapper
@@ -47,6 +48,8 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
     private val meter = Meter("activity", disabled = true)
 
     private var frontFacing = false
+
+    private var galleryOpenedState = StateDelegate<Boolean>(this)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -108,6 +111,10 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
             cameraWrapper.open()
 //            cameraView.show()
 
+        }
+
+        if(galleryOpenedState.state == true) {
+            showGallery(withoutAnimation = true)
         }
 
         initObservables()
@@ -321,17 +328,23 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
 //        Logg.d(images)
     }
 
-    private fun showGallery() {
+    private fun showGallery(withoutAnimation: Boolean = false) {
+        galleryOpenedState.state = true
         ivFocus.hide()
         ivResult.hide()
         lGallery.y = DeviceInfoUtils.getScreenSize(mainActivity()).height.toFloat()
         lGallery.show()
-        lGallery.animate().y(0f).start()
+        if(!withoutAnimation) {
+            lGallery.animate().y(0f).start()
+        } else {
+            lGallery.y = 0f
+        }
         //todo anim
         updateGallery()
     }
 
     private fun hideGallery() {
+        galleryOpenedState.state = false
         lGallery.animate()
             .y(DeviceInfoUtils.getScreenSize(mainActivity()).height.toFloat())
             .withEndAction {
