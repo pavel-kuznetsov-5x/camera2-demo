@@ -14,7 +14,7 @@ import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.spqrta.camera2demo.*
-import com.spqrta.camera2demo.base.BaseFragment
+import com.spqrta.camera2demo.base.display.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import com.spqrta.camera2demo.camera.PhotoCameraWrapper
 import com.spqrta.camera2demo.camera.TextureViewWrapper
@@ -111,7 +111,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
         tvInfo.text = "size: ${cameraWrapper.getSizeRegardsOrientation().toStringWh()}"
 
         cameraWrapper.focusStateObservable.subscribeManaged {
-//            Logger.d(it)
+//            Logg.d(it)
             when (it) {
                 is BaseCameraWrapper.Focusing -> {
                     ivFocus.clearColorFilter()
@@ -197,7 +197,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
             DeviceInfoUtils.getModelAndManufacturer(),
             frontFacing = false
         )
-//        Logger.v(scale)
+//        Logg.v(scale)
         cameraView.scaleY = scale
     }
 
@@ -256,7 +256,7 @@ class TextureCameraFragment : BaseFragment<MainActivity>() {
         val images = MyApplication.IMAGES_FOLDER.listFiles()?.toList()
             ?.map { it.absolutePath }
         galleryAdapter.updateItems(images ?: listOf())
-//        Logger.d(images)
+//        Logg.d(images)
     }
 
     private fun showGallery() {

@@ -1,7 +1,7 @@
 package com.spqrta.camera2demo
 
 import com.spqrta.camera2demo.utility.CustomApplication
-import com.spqrta.camera2demo.utility.utils.FileUtils
+import com.spqrta.camera2demo.utility.pure.FileUtils
 import java.io.File
 
 class MyApplication : CustomApplication() {

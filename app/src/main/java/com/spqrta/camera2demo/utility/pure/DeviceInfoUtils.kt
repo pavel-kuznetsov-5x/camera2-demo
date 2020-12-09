@@ -1,22 +1,15 @@
-package com.spqrta.camera2demo.utility.utils
+package com.spqrta.camera2demo.utility.pure
 
 import android.annotation.SuppressLint
-import android.content.res.Resources
+import android.app.Activity
 import android.os.Build
 import android.util.DisplayMetrics
 import android.util.Size
-import com.spqrta.camera2demo.utility.CustomApplication
 
 
 @SuppressLint("DefaultLocale")
 object DeviceInfoUtils {
 
-    fun getScreenSize(): Size {
-        return Size(
-            Resources.getSystem().displayMetrics.widthPixels,
-            Resources.getSystem().displayMetrics.heightPixels
-        )
-    }
 
     fun getModel(): String {
         return Build.MODEL.toUpperCase()
@@ -24,6 +17,12 @@ object DeviceInfoUtils {
 
     fun getManufacturer(): String {
         return Build.MANUFACTURER.toUpperCase()
+    }
+
+    fun getScreenSize(activity: Activity): Size {
+        val displayMetrics = DisplayMetrics()
+        activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
+        return Size(displayMetrics.widthPixels, displayMetrics.heightPixels)
     }
 
     fun getModelAndManufacturer(): String {

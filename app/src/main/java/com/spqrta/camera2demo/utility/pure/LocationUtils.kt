@@ -1,4 +1,4 @@
-package com.spqrta.camera2demo.utility.utils
+package com.spqrta.camera2demo.utility.pure
 
 import kotlin.math.pow
 

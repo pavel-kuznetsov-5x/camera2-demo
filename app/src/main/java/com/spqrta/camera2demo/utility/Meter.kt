@@ -1,6 +1,5 @@
 package com.spqrta.camera2demo.utility
 
-//todo to reusables
 class Meter(
     private val tag: String = "",
     private val showThread: Boolean = false,
@@ -11,7 +10,7 @@ class Meter(
     private var lastLogTime: Long = startTime
 
     init {
-        Logger.d("$tag start")
+        Logg.d("$tag start")
     }
 
     fun log(message: String? = null) {
@@ -23,7 +22,7 @@ class Meter(
             if (message != null) {
                 res += " $message"
             }
-            Logger.d(res)
+            Logg.d(res)
             lastLogTime = System.currentTimeMillis()
         }
     }
@@ -37,7 +36,7 @@ class Meter(
             if (message != null) {
                 res += " $message"
             }
-            Logger.d(res)
+            Logg.d(res)
         }
     }
 }

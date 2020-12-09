@@ -17,11 +17,11 @@ import android.util.SparseIntArray
 import android.view.Surface
 import androidx.core.content.ContextCompat
 import com.spqrta.camera2demo.utility.CustomApplication
-import com.spqrta.camera2demo.utility.Logger
+import com.spqrta.camera2demo.utility.Logg
 import com.spqrta.camera2demo.utility.Meter
 import com.spqrta.camera2demo.utility.SubscriptionManager
-import com.spqrta.camera2demo.utility.utils.aspectRatio
-import com.spqrta.camera2demo.utility.utils.toStringWh
+import com.spqrta.camera2demo.utility.pure.aspectRatio
+import com.spqrta.camera2demo.utility.pure.toStringWh
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -80,7 +80,7 @@ abstract class BaseCameraWrapper<T>(
     var sessionState: SessionState = Preview
         set(value) {
             field = value
-            Logger.v(value)
+            Logg.v(value)
         }
 
     protected val captureCallback = object : SimpleCaptureCallback() {
@@ -150,7 +150,7 @@ abstract class BaseCameraWrapper<T>(
 
     protected open fun onNewFrame(imageReader: ImageReader) {
         try {
-            Logger.v("onNewFrame")
+            Logg.v("onNewFrame")
             handleImageAndClose(imageReader)
         } catch (e: IllegalStateException) {
             if (e.message?.contains("maxImages") == true) {
@@ -241,7 +241,7 @@ abstract class BaseCameraWrapper<T>(
                         object : CameraDevice.StateCallback() {
                             override fun onOpened(camera: CameraDevice) {
                                 try {
-                                    Logger.v("callback: camera opened")
+                                    Logg.v("callback: camera opened")
                                     cameraDevice = camera
                                     onCameraOpened(camera)
                                 } catch (e: IllegalStateException) {
@@ -253,12 +253,12 @@ abstract class BaseCameraWrapper<T>(
 
                             override fun onClosed(camera: CameraDevice) {
                                 isNotOpenOrOpening = true
-                                Logger.v("callback: camera closed")
+                                Logg.v("callback: camera closed")
                             }
 
                             override fun onDisconnected(camera: CameraDevice) {
                                 isNotOpenOrOpening = true
-                                Logger.v("callback: camera disconnected")
+                                Logg.v("callback: camera disconnected")
                                 cameraDevice = null
                                 subject.onError(CameraDisconnected())
                             }
@@ -408,12 +408,12 @@ abstract class BaseCameraWrapper<T>(
         }
 
         if (sessionState != Preview) {
-            Logger.v("process ${sessionState::class.java.simpleName}, AE: ${autoExposureState}, AF: ${autoFocusState}, completed: $completed")
+            Logg.v("process ${sessionState::class.java.simpleName}, AE: ${autoExposureState}, AF: ${autoFocusState}, completed: $completed")
         }
 
         when (sessionState) {
             is Preview, Initial, MakingShot -> {
-//                Logger.v("preview AF: ${autoFocusState}")
+//                Logg.v("preview AF: ${autoFocusState}")
             }
             is Precapture -> {
                 if (completed) {
@@ -421,16 +421,16 @@ abstract class BaseCameraWrapper<T>(
                 } else when (autoFocusState) {
                     null,
                     CaptureResult.CONTROL_AF_STATE_INACTIVE -> {
-//                        Logger.v("autoFocus not available")
+//                        Logg.v("autoFocus not available")
                         processAutoExposure(autoExposureState)
                     }
                     CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN -> {
-//                        Logger.v("autoFocus in progress")
+//                        Logg.v("autoFocus in progress")
                     }
                     CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED,
                     CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED,
                     CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED -> {
-//                        Logger.v("autoFocus finished")
+//                        Logg.v("autoFocus finished")
                         processAutoExposure(autoExposureState)
                     }
                     else -> {
@@ -455,7 +455,7 @@ abstract class BaseCameraWrapper<T>(
                 onPrecaptureFinished()
             }
             CaptureResult.CONTROL_AE_STATE_SEARCHING -> {
-//                Logger.v("autoExposure is in progress: ${autoExposureState}")
+//                Logg.v("autoExposure is in progress: ${autoExposureState}")
             }
             else -> {
                 val e = IllegalStateException(
@@ -470,7 +470,7 @@ abstract class BaseCameraWrapper<T>(
     }
 
     private fun onPrecaptureFinished() {
-        Logger.v("onPrecaptureFinished")
+        Logg.v("onPrecaptureFinished")
         sessionState = MakingShot
         captureStillPicture()
     }
@@ -546,7 +546,7 @@ abstract class BaseCameraWrapper<T>(
             0
 //            calculateOrientation(rotation, orientation)
         )
-//        Logger.d("orientation ${rotation} ${orientation} ${calculateOrientation(rotation, orientation)}")
+//        Logg.d("orientation ${rotation} ${orientation} ${calculateOrientation(rotation, orientation)}")
         requestBuilder.set(
             CaptureRequest.CONTROL_AF_MODE,
             CaptureRequest.CONTROL_AF_MODE_AUTO
@@ -607,8 +607,8 @@ abstract class BaseCameraWrapper<T>(
     ): Size {
         val sizes = getAvailableRawSizes()
 
-//        Logger.v(" \n" + sizes.joinToString("\n") { it.toStringWh() })
-        Logger.v(" \n" + sizes.sortedBy { it.width }.joinToString("\n") {
+//        Logg.v(" \n" + sizes.joinToString("\n") { it.toStringWh() })
+        Logg.v(" \n" + sizes.sortedBy { it.width }.joinToString("\n") {
             convertSizeRegardsOrientation(it).toStringWh()
         })
 
@@ -651,7 +651,7 @@ abstract class BaseCameraWrapper<T>(
                 .toList()
 
             if (filteredSizes.isEmpty()) {
-                Logger.e("required size not found")
+                Logg.e("required size not found")
 //                CustomApplication.analytics().logException(Exception("size range not found"))
             }
 
@@ -668,7 +668,7 @@ abstract class BaseCameraWrapper<T>(
             }
         }
 
-        Logger.v("selected size ${convertSizeRegardsOrientation(selectedSize!!).toStringWh()}")
+        Logg.v("selected size ${convertSizeRegardsOrientation(selectedSize!!).toStringWh()}")
         return selectedSize!!
     }
 

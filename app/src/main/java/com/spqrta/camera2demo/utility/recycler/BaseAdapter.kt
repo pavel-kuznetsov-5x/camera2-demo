@@ -11,6 +11,12 @@ abstract class BaseAdapter<T : Any, VH : BaseAdapter.BaseVh<T>> : RecyclerView.A
 
     val items: MutableList<T> = mutableListOf<T>()
 
+    fun deleteItem(item: T) {
+        items.remove(item)
+        notifyDataSetChanged()
+//        notifyItemRemoved()
+    }
+
     fun updateItems(_items: List<T>) {
         items.clear()
         addItemsAndUpdate(_items)
@@ -36,10 +42,11 @@ abstract class BaseAdapter<T : Any, VH : BaseAdapter.BaseVh<T>> : RecyclerView.A
     }
 
     open fun createViewHolder(view: View, baseClickListener: ((Int) -> Unit)): VH {
-        return BaseVh<T>(
-            view,
-            baseClickListener
-        ) as VH
+        throw NotImplementedError("createViewHolder")
+//        return BaseVh<T>(
+//            view,
+//            baseClickListener
+//        ) as VH
     }
 
     override fun getItemCount(): Int = items.size

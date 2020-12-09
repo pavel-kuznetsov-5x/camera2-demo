@@ -1,4 +1,4 @@
-package com.spqrta.camera2demo.utility.utils
+package com.spqrta.camera2demo.utility.pure
 
 import android.content.ContentResolver
 import android.provider.Settings

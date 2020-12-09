@@ -2,10 +2,11 @@ package com.spqrta.camera2demo.utility
 
 import android.util.Log
 
-//todo multi
-object Logger {
+object Logg {
 
     private val logEnabled = CustomApplication.appConfig.debugMode
+//    private val logEnabled = true
+
     var externalLogConsumer: LogConsumer? = null
 
     const val TAG = "cutag"
@@ -29,6 +30,17 @@ object Logger {
             Log.e(TAG, obj.toString())
             externalLogConsumer?.log(obj.toString(), LogConsumer.Channel.E)
         }
+    }
+
+    fun i(obj: Any) {
+        if(logEnabled) {
+            Log.i(TAG, obj.toString())
+            externalLogConsumer?.log(obj.toString(), LogConsumer.Channel.E)
+        }
+    }
+
+    fun logListMultiline(list: List<*>) {
+        d("\n\n"+list.joinToString("\n"))
     }
 
     interface LogConsumer {

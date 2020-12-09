@@ -1,12 +1,10 @@
-package com.spqrta.camera2demo.utility.utils
+package com.spqrta.camera2demo.utility.pure
 
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.util.Base64
 import android.util.Size
@@ -16,21 +14,17 @@ import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
-import io.reactivex.Observable
-import io.reactivex.Scheduler
-import io.reactivex.android.schedulers.AndroidSchedulers
 import org.json.JSONArray
 import org.json.JSONObject
 import org.threeten.bp.LocalDate
 import com.spqrta.camera2demo.utility.CustomApplication
-import io.reactivex.Single
+import com.spqrta.camera2demo.utility.CustomApplication.Companion.context
 import java.io.InputStream
-import java.util.concurrent.TimeUnit
-
+import kotlin.math.pow
+import kotlin.math.round
 
 object Utils {
     fun copyToClipboard(text: String, showToast: Boolean = false) {
@@ -51,9 +45,18 @@ object Utils {
         }
     }
 
+    fun showKeyboard(activity: Activity, view: View? = null) {
+        view?.requestFocus()
+        val inputMethodManager =
+            context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.showSoftInput(activity.currentFocus, 0)
+    }
+
     fun setStatusBarColor(
-        activity: Activity, @ColorRes color: Int,
-        setLight: Boolean? = null, @ColorRes compatColor: Int? = null
+        activity: Activity,
+        @ColorRes color: Int,
+        setLight: Boolean? = null,
+        @ColorRes compatColor: Int? = null
     ) {
         if (setLight != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -94,11 +97,6 @@ object Utils {
         }
     }
 
-    fun openLink(context: Context, url: String) {
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        context.startActivity(browserIntent)
-    }
-
     fun loadJsonFromAssets(filename: String, array: Boolean = false): JSONObject {
         val am = CustomApplication.context.assets
         val inputStream = am.open(filename)
@@ -113,11 +111,7 @@ object Utils {
             )
             root
         } else {
-            JSONObject(
-                readFromStream(
-                    inputStream
-                )
-            )
+            JSONObject(readFromStream(inputStream))
         }
         return json
     }
@@ -141,7 +135,7 @@ object Utils {
     }
 
     fun setKeepScreenOn(window: Window, disable: Boolean) {
-        if(disable) {
+        if (disable) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -149,11 +143,13 @@ object Utils {
     }
 }
 
-
 class Optional<M>(private val optional: M?) {
 
     val isEmpty: Boolean
         get() = this.optional == null
+
+    val isNotEmpty: Boolean
+        get() = !isEmpty
 
     fun get(): M {
         if (optional == null) {
@@ -161,11 +157,13 @@ class Optional<M>(private val optional: M?) {
         }
         return optional
     }
-}
 
-object DpUtils {
-    fun dpToPx(context: Context, dp: Int): Float {
-        return dp * context.resources.displayMetrics.density;
+    fun getNullable(): M? {
+        return optional
+    }
+
+    companion object {
+        fun <T> nullValue() = Optional<T>(null)
     }
 }
 
@@ -199,100 +197,11 @@ object Base64Utils {
     }
 }
 
-//class AccessToken(value: String) : RxStringResult(value)
-//Single<AccessToken>
-class Empty
-
-open class RxResult<T>(val value: T)
-open class RxStringResult(value: String) : RxResult<String>(value) {
-    override fun toString() = value
-}
+object Stub : Any()
 
 
-
-object TimerObservable {
-    fun timer(delay: Int): Observable<Long> {
-        return timer(delay.toLong())
-    }
-
-    fun timer(delay: Long, scheduler: Scheduler = AndroidSchedulers.mainThread()): Observable<Long> {
-        return Observable.timer(delay, TimeUnit.MILLISECONDS, scheduler)
-    }
-
-    fun interval(delay: Int, initialDelay: Int? = null): Observable<Long> {
-        return if(initialDelay == null) {
-            Observable.interval(
-                delay.toLong(),
-                TimeUnit.MILLISECONDS,
-                AndroidSchedulers.mainThread()
-            )
-        } else {
-            Observable.interval(
-                initialDelay.toLong(),
-                delay.toLong(),
-                TimeUnit.MILLISECONDS,
-                AndroidSchedulers.mainThread()
-            )
-        }
-    }
-
-    fun interval(delay: Long): Observable<Long> {
-        return Observable.interval(delay, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-    }
-}
-
-object Stub: Any()
-
-fun String.toBase64(): String {
-    return Base64Utils.encode(this)
-}
-
-fun View.hide() {
-    visibility = View.GONE
-}
-
-fun View.makeInvisible() {
-    visibility = View.INVISIBLE
-}
-
-fun View.show() {
-    visibility = View.VISIBLE
-}
-
-fun View.setInvisibleState(value: Boolean) {
-    visibility = if (value) {
-        View.INVISIBLE
-    } else {
-        View.VISIBLE
-    }
-}
-
-fun View.setGoneState(value: Boolean) {
-    visibility = if (value) {
-        View.GONE
-    } else {
-        View.VISIBLE
-    }
-}
-
-fun <T> Single<T>.delayExecution(milliseconds: Int): Single<T> {
-    return delay(milliseconds.toLong(), TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-}
-
-fun <T> Single<T>.attachProgressbar(progressBar: View): Single<T> {
-    return doOnSubscribe {
-        progressBar.show()
-    }.doOnEvent { _, _ ->
-        progressBar.hide()
-    }
-}
-
-fun <T> Single<T>.delayExecution(milliseconds: Long): Single<T> {
-    return delay(milliseconds, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-}
-
-fun TextView.textString(): String {
-    return text.toString()
+fun Int.toColorInt(): Int {
+    return CustomApplication.context.resources.getColor(this)
 }
 
 fun <T : Any?> MutableLiveData<T>.initWith(initialValue: T) = apply { setValue(initialValue) }
@@ -300,19 +209,18 @@ fun <T : Any?> MutableLiveData<T>.initWith(initialValue: T) = apply { setValue(i
 fun <T : Any?> MutableLiveData<T>.init(initializer: () -> T) =
     apply { setValue(initializer.invoke()) }
 
-fun String?.nullIfEmpty(): String? = if (this.isNullOrEmpty()) {
-    null
-} else {
-    this
+fun <T : Any?> T.nullIf(condition: (T) -> Boolean): T? {
+    return this?.let {
+        if (condition.invoke(this)) {
+            null
+        } else {
+            this
+        }
+    }
 }
 
-//todo remove in reusables
-//fun Size.toStringHw(): String {
-////    return "${height}x$width"
-////}
-
 fun Size.toStringWh(): String {
-    return "${width}x$height ${aspectRatio()}"
+    return "${width}x$height"
 }
 
 fun Size.aspectRatio(): Float {
@@ -321,4 +229,16 @@ fun Size.aspectRatio(): Float {
 
 fun <T> T?.replaceIfNull(obj: T): T {
     return this ?: obj
+}
+
+fun Float.roundTo(decimals: Int): Float {
+    return round(this * 10F.pow(decimals)) / 10F.pow(decimals)
+}
+
+fun Int?.ifNotNullElse(yes: (Int) -> Unit, els: () -> Unit) {
+    if (this != null) {
+        yes.invoke(this)
+    } else {
+        els.invoke()
+    }
 }

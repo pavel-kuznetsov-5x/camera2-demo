@@ -2,7 +2,6 @@ package com.spqrta.camera2demo
 
 import android.view.View
 import com.bumptech.glide.Glide
-import com.spqrta.camera2demo.utility.Logger
 import com.spqrta.camera2demo.utility.recycler.BaseAdapter
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.item_gallery_image.view.*

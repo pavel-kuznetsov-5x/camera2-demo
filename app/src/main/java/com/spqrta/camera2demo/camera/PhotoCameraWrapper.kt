@@ -8,9 +8,9 @@ import android.util.Size
 import android.view.Surface
 import com.spqrta.camera2demo.MyApplication
 import com.spqrta.camera2demo.screens.surface_camera.SurfaceCameraFragment
-import com.spqrta.camera2demo.utility.Logger
+import com.spqrta.camera2demo.utility.Logg
 import com.spqrta.camera2demo.utility.Meter
-import com.spqrta.camera2demo.utility.utils.BitmapUtils
+import com.spqrta.camera2demo.utility.pure.BitmapUtils
 import io.reactivex.subjects.BehaviorSubject
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
@@ -68,7 +68,7 @@ class PhotoCameraWrapper(
             DateTimeFormatter.ISO_DATE_TIME
         ) + ".jpg"
         val filePath = MyApplication.IMAGES_FOLDER.absolutePath + "/" + filename
-//        Logger.d(filePath)
+//        Logg.d(filePath)
         BitmapUtils.toFile(filePath, bitmap, quality = 95)
     }
 

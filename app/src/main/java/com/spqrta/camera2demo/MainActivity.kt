@@ -2,12 +2,14 @@ package com.spqrta.camera2demo
 
 import android.content.res.Configuration
 import android.widget.Toast
-import com.spqrta.camera2demo.base.NavActivity
+import com.spqrta.camera2demo.base.display.NavActivity
 
 
 class MainActivity : NavActivity() {
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
+    override val layoutRes: Int = R.layout.activity_nav
+
+            override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
         // Checks the orientation of the screen

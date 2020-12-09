@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.spqrta.camera2demo.MainActivity
 import com.spqrta.camera2demo.R
-import com.spqrta.camera2demo.base.BaseFragment
+import com.spqrta.camera2demo.base.display.BaseFragment
 import kotlinx.android.synthetic.main.fragment_start.*
 
 class StartFragment : BaseFragment<MainActivity>() {

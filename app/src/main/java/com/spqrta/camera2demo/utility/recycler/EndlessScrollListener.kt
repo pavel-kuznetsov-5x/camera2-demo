@@ -4,11 +4,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 
 import androidx.recyclerview.widget.RecyclerView
 
-
-class EndlessScrollListener(
+open class EndlessScrollListener(
     private val loadMoreListener: OnLoadMoreListener
 ) : RecyclerView.OnScrollListener() {
-    private val visibleThreshold = 3
+    open val visibleThreshold = 3
     private var currentPage = 0
     private var currentTotalItems = 0
     private val firstItemPageIndex = 0

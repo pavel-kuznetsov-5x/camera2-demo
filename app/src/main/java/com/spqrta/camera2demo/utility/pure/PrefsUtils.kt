@@ -1,4 +1,4 @@
-package com.spqrta.camera2demo.utility.utils
+package com.spqrta.camera2demo.utility.pure
 
 import android.preference.PreferenceManager
 import com.spqrta.camera2demo.utility.CustomApplication
@@ -18,6 +18,24 @@ abstract class StringSetting : Setting<String?>() {
 
     override fun save(value: String?) {
         prefs.edit().putString(key, value).apply()
+    }
+}
+
+abstract class IntSetting : Setting<Int?>() {
+    override fun load(): Int? {
+        return if(prefs.contains(key)) {
+            prefs.getInt(key, 0)
+        } else {
+            null
+        }
+    }
+
+    override fun save(value: Int?) {
+        if(value != null) {
+            prefs.edit().putInt(key, value).apply()
+        } else {
+            prefs.edit().remove(key).apply()
+        }
     }
 }
 

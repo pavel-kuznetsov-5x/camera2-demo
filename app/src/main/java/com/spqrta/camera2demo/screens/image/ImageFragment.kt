@@ -9,7 +9,7 @@ import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.spqrta.camera2demo.MainActivity
 import com.spqrta.camera2demo.R
-import com.spqrta.camera2demo.base.BaseFragment
+import com.spqrta.camera2demo.base.display.BaseFragment
 import kotlinx.android.synthetic.main.fragment_image.*
 
 class ImageFragment : BaseFragment<MainActivity>() {

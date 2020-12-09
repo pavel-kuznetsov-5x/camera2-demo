@@ -5,8 +5,7 @@ import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import com.spqrta.camera2demo.screens.surface_camera.SurfaceCameraFragment
-import com.spqrta.camera2demo.utility.Logger
-import com.spqrta.camera2demo.utility.utils.toStringWh
+import com.spqrta.camera2demo.utility.Logg
 import io.reactivex.subjects.BehaviorSubject
 
 

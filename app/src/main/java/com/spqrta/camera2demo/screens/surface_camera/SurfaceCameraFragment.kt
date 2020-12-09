@@ -18,13 +18,14 @@ import com.spqrta.camera2demo.GalleryAdapter
 import com.spqrta.camera2demo.MainActivity
 import com.spqrta.camera2demo.MyApplication
 import com.spqrta.camera2demo.R
-import com.spqrta.camera2demo.base.BaseFragment
+import com.spqrta.camera2demo.base.display.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
 import com.spqrta.camera2demo.camera.PhotoCameraWrapper
 import com.spqrta.camera2demo.camera.SurfaceViewWrapper
 import com.spqrta.camera2demo.screens.texture_camera.TextureCameraFragment
-import com.spqrta.camera2demo.utility.Logger
+import com.spqrta.camera2demo.utility.Logg
 import com.spqrta.camera2demo.utility.Meter
+import com.spqrta.camera2demo.utility.pure.*
 import com.spqrta.camera2demo.utility.utils.*
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
@@ -128,7 +129,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
     }
 
     private fun onShotClicked() {
-//        Logger.d((surfaceViewWrapper.subject.value as BaseCameraWrapper.SurfaceAvailable).surface.)
+//        Logg.d((surfaceViewWrapper.subject.value as BaseCameraWrapper.SurfaceAvailable).surface.)
         meter.log("shot")
         progressBar.show()
         cameraWrapper.takePhoto()
@@ -138,7 +139,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         val rotation = mainActivity().windowManager.defaultDisplay.rotation
         cameraWrapper = PhotoCameraWrapper(
             {
-//                Logger.e(
+//                Logg.e(
 //                    "surface ${Size(
 //                        surfaceViewWrapper.surfaceView.holder.surfaceFrame.width(),
 //                        surfaceViewWrapper.surfaceView.holder.surfaceFrame.height()
@@ -151,7 +152,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
             requireFrontFacing = frontFacing
         )
 
-//        Logger.d(" \n"+cameraWrapper.getAvailablePreviewSizesRegardsOrientation().joinToString ("\n") { it.toStringWh() })
+//        Logg.d(" \n"+cameraWrapper.getAvailablePreviewSizesRegardsOrientation().joinToString ("\n") { it.toStringWh() })
 
         var previewSize = cameraWrapper.getAvailablePreviewSizesRegardsOrientation().firstOrNull()
         if (previewSize == null) {
@@ -161,7 +162,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         //todo
 //        previewSize = Size(1536, 2048)
 
-        Logger.v("preview size ${previewSize.toStringWh()}")
+        Logg.v("preview size ${previewSize.toStringWh()}")
 
         val lp = surfaceViewWrapper.surfaceView.layoutParams
         lp.height = (
@@ -179,7 +180,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
 //        tvInfo.text = "size: ${cameraWrapper.getSizeRegardsOrientation().toStringWh()}"
 
         cameraWrapper.focusStateObservable.subscribeManaged {
-//            Logger.d(it)
+//            Logg.d(it)
             when (it) {
                 is BaseCameraWrapper.Focusing -> {
                     ivFocus.clearColorFilter()
@@ -317,13 +318,13 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
         val images = MyApplication.IMAGES_FOLDER.listFiles()?.toList()
             ?.map { it.absolutePath }
         galleryAdapter.updateItems(images ?: listOf())
-//        Logger.d(images)
+//        Logg.d(images)
     }
 
     private fun showGallery() {
         ivFocus.hide()
         ivResult.hide()
-        lGallery.y = DeviceInfoUtils.getScreenSize().height.toFloat()
+        lGallery.y = DeviceInfoUtils.getScreenSize(mainActivity()).height.toFloat()
         lGallery.show()
         lGallery.animate().y(0f).start()
         //todo anim
@@ -332,7 +333,7 @@ class SurfaceCameraFragment : BaseFragment<MainActivity>() {
 
     private fun hideGallery() {
         lGallery.animate()
-            .y(DeviceInfoUtils.getScreenSize().height.toFloat())
+            .y(DeviceInfoUtils.getScreenSize(mainActivity()).height.toFloat())
             .withEndAction {
                 lGallery.hide()
             }

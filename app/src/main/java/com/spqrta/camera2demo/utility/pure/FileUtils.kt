@@ -1,9 +1,8 @@
-package com.spqrta.camera2demo.utility.utils
+package com.spqrta.camera2demo.utility.pure
 
 import java.io.*
 
 
-//todo sync with reusables
 object FileUtils {
 
     fun ensureFolderExists(file: File): File {
