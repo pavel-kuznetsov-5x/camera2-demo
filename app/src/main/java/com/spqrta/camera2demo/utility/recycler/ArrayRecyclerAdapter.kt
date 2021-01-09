@@ -6,7 +6,6 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import kotlinx.android.extensions.LayoutContainer
 
-//todo test
 open class ArrayRecyclerAdapter<T: Any>: BaseAdapter<T, BaseAdapter.BaseVh<T>>() {
 
     override val itemLayoutResource: Int = 0

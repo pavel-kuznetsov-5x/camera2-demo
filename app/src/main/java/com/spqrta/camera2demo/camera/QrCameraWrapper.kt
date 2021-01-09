@@ -21,6 +21,7 @@ import org.threeten.bp.format.DateTimeFormatter
 import java.io.IOException
 import java.lang.Boolean
 import java.lang.Exception
+import java.net.URLDecoder
 import java.util.*
 
 @SuppressLint("NewApi")
@@ -88,7 +89,7 @@ class QrCameraWrapper(
             val source = RGBLuminanceSource(width, height, pixels)
             val bitmapRes = BinaryBitmap(HybridBinarizer(source))
             val result = MultiFormatReader().decode(bitmapRes)
-            return result.text
+            return URLDecoder.decode(result.text, Charsets.UTF_8.name())
         } catch (e: NotFoundException) {
             return null
         } catch (e: Exception) {
