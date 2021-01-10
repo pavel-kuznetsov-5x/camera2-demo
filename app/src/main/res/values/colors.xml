@@ -14,4 +14,6 @@
     <color name="light_gray">#d7dde1</color>
     <color name="white">#ffffff</color>
     <color name="fade">#cc171f24</color>
+
+    <color name="recording_red">#88c2122b</color>
 </resources>

@@ -20,6 +20,15 @@ class MyApplication : CustomApplication() {
                 )
             )
         }
+
+        val VIDEOS_FOLDER by lazy {
+            FileUtils.ensureFolderExists(
+                File(
+                    context.externalCacheDir!!,
+                    "videos/"
+                )
+            )
+        }
     }
 
 

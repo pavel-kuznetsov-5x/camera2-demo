@@ -32,6 +32,7 @@ import kotlin.math.atan
 import kotlin.math.min
 
 //todo check if subject store past values? possible leak
+@Suppress("JoinDeclarationAndAssignment")
 @SuppressLint("NewApi")
 abstract class BaseCameraWrapper<T>(
     protected val rotation: Int = 0,

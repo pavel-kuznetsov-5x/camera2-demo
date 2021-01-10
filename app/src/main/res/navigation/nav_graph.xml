@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_startFragment_to_qrFragment"
             app:destination="@id/qrFragment" />
+        <action
+            android:id="@+id/action_startFragment_to_videoFragment"
+            app:destination="@id/videoFragment" />
     </fragment>
     <fragment
         android:id="@+id/textureCameraFragment"
@@ -49,4 +52,8 @@
         android:id="@+id/qrFragment"
         android:name="com.spqrta.camera2demo.screens.qr.QrFragment"
         android:label="QrFragment" />
+    <fragment
+        android:id="@+id/videoFragment"
+        android:name="com.spqrta.camera2demo.screens.video.VideoFragment"
+        android:label="VideoFragment" />
 </navigation>
