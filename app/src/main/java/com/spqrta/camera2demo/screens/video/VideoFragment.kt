@@ -16,6 +16,7 @@ import com.spqrta.camera2demo.*
 import com.spqrta.camera2demo.base.delegates.StateDelegate
 import com.spqrta.camera2demo.base.display.BaseFragment
 import com.spqrta.camera2demo.camera.BaseCameraWrapper
+import com.spqrta.camera2demo.camera.VideoCameraWrapper
 import com.spqrta.camera2demo.camera.view_wrappers.SurfaceViewWrapper
 import com.spqrta.camera2demo.utility.CustomApplication
 import com.spqrta.camera2demo.utility.Logg

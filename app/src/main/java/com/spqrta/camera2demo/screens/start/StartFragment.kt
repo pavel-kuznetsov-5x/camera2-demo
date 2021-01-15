@@ -23,7 +23,7 @@ class StartFragment : BaseFragment<MainActivity>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        findNavController().navigate(StartFragmentDirections.actionStartFragmentToVideoFragment())
+        findNavController().navigate(StartFragmentDirections.actionStartFragmentToVideoFragment())
 
 //        bTexture.setOnClickListener {
 //            findNavController().navigate(StartFragmentDirections.actionStartFragmentToTextureCameraFragment())
